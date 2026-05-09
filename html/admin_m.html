@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Heliaris 管理員</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#f4f4f5;font-family:system-ui,-apple-system,sans-serif;min-height:100vh;padding-bottom:72px}
+header{background:#18181b;color:#fff;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+header h1{font-size:.9rem;font-weight:700;letter-spacing:.06em}
+.hbtns{display:flex;gap:8px}
+.hbtn{font-size:.75rem;background:none;border:1px solid #3f3f46;color:#a1a1aa;border-radius:6px;padding:5px 10px;cursor:pointer;display:flex;align-items:center;gap:4px}
+.hbtn:hover{color:#fff;border-color:#71717a}
+.hbtn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.tab-bar{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #e4e4e7;display:flex;z-index:20;height:64px}
+.tab-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:#a1a1aa;transition:color .15s;border:none;background:none;padding:8px 0}
+.tab-item.active{color:#18181b}
+.tab-item svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tab-item span{font-size:.64rem;font-weight:600;letter-spacing:.03em}
+.section{display:none;max-width:520px;margin:0 auto;padding:18px 14px;flex-direction:column;gap:14px}
+.section.active{display:flex}
+.card{background:#fff;border:1px solid #e4e4e7;border-radius:12px;padding:20px}
+.card-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#a1a1aa;margin-bottom:14px;display:flex;align-items:center;gap:6px}
+.card-label svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.month-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.mtab{background:#f4f4f5;border:none;border-radius:6px;padding:5px 12px;font-size:.76rem;font-weight:600;color:#71717a;cursor:pointer}
+.mtab.active{background:#18181b;color:#fff}
+.bar-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #f4f4f5}
+.bar-row:last-child{border:none}
+.bar-room{width:38px;font-size:.8rem;font-weight:700;color:#18181b}
+.bar-wrap{flex:1;background:#f4f4f5;border-radius:4px;height:10px;overflow:hidden}
+.bar{height:100%;border-radius:4px;background:#18181b;transition:width .5s}
+.bar-cnt{width:32px;text-align:right;font-size:.78rem;color:#71717a}
+.co2-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f4f4f5;font-size:.82rem}
+.co2-row:last-child{border:none}
+.co2-val{font-weight:700;color:#dc2626}
+.rank-card{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #f4f4f5}
+.rank-card:last-child{border:none}
+.rank-pos{width:28px;height:28px;border-radius:50%;background:#f4f4f5;display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:800;color:#71717a;flex-shrink:0}
+.rank-pos.p1{background:#fef3c7;color:#92400e}
+.rank-pos.p2{background:#e4e4e7;color:#52525b}
+.rank-pos.p3{background:#fde68a;color:#a16207}
+.rank-info{flex:1}
+.rank-name{font-size:.9rem;font-weight:700}
+.rank-sub{font-size:.72rem;color:#71717a;margin-top:2px}
+.rank-tag{font-size:.68rem;font-weight:700;background:#18181b;color:#fff;border-radius:4px;padding:2px 6px;margin-left:6px}
+.merchant-list{display:flex;flex-direction:column}
+.merchant-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f4f4f5;font-size:.85rem}
+.merchant-row:last-child{border:none}
+.merchant-name{font-weight:600}
+.cat-badge{background:#f4f4f5;border-radius:5px;padding:2px 7px;font-size:.68rem;font-weight:600;color:#52525b}
+.add-form{display:flex;flex-direction:column;gap:10px;margin-top:14px;padding-top:14px;border-top:1px solid #f4f4f5}
+.add-form input,.add-form select{border:1.5px solid #e4e4e7;border-radius:8px;padding:10px 12px;font-size:.85rem;width:100%;outline:none;font-family:inherit}
+.add-form input:focus,.add-form select:focus{border-color:#18181b}
+.add-btn{background:#18181b;color:#fff;border:none;border-radius:8px;padding:11px;font-size:.85rem;font-weight:600;cursor:pointer}
+.add-btn:hover{background:#3f3f46}
+.student-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.s-chip{background:#f4f4f5;border-radius:8px;padding:8px 10px}
+.s-chip-name{font-size:.82rem;font-weight:600}
+.s-chip-id{font-size:.68rem;color:#a1a1aa;margin-top:2px}
+.s-chip-room{font-size:.68rem;color:#71717a}
+</style>
+</head>
+<body>
+<header>
+  <h1>Heliaris 管理</h1>
+  <div class="hbtns">
+    <button class="hbtn" onclick="location.href='/admin'">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      電腦版
+    </button>
+    <button class="hbtn" onclick="logout()">
+      <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      登出
+    </button>
+  </div>
+</header>
+
+<div class="section active" id="sec-stats">
+  <div class="card">
+    <div class="card-label">
+      <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      外送統計
+    </div>
+    <div class="month-tabs" id="month-tabs"></div>
+    <div id="bar-chart"></div>
+  </div>
+  <div class="card">
+    <div class="card-label">
+      <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      碳排放估算
+    </div>
+    <div id="co2-list"></div>
+    <div style="font-size:.7rem;color:#a1a1aa;margin-top:10px">每筆外送約產生 0.5 kg CO&#8322;（含包裝＋運送）</div>
+  </div>
+</div>
+
+<div class="section" id="sec-rank">
+  <div class="card">
+    <div class="card-label">
+      <svg viewBox="0 0 24 24"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg>
+      本月排行榜
+    </div>
+    <div id="rank-list"></div>
+  </div>
+</div>
+
+<div class="section" id="sec-merchants">
+  <div class="card">
+    <div class="card-label">
+      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      合作店家
+    </div>
+    <div class="merchant-list" id="merchant-list"></div>
+    <div class="add-form">
+      <input id="inp-merchant" placeholder="店家名稱" type="text">
+      <select id="inp-cat">
+        <option value="">選擇分類</option>
+        <option>速食</option><option>日式</option><option>台式</option>
+        <option>咖啡</option><option>飲料</option><option>飲料/甜點</option><option>其他</option>
+      </select>
+      <button class="add-btn" onclick="addMerchant()">新增店家</button>
+    </div>
+  </div>
+</div>
+
+<div class="section" id="sec-students">
+  <div class="card">
+    <div class="card-label">
+      <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      學生名冊
+    </div>
+    <div class="student-grid" id="student-grid"></div>
+  </div>
+</div>
+
+<nav class="tab-bar">
+  <button class="tab-item active" onclick="switchTab('stats',0)">
+    <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+    <span>統計</span>
+  </button>
+  <button class="tab-item" onclick="switchTab('rank',1)">
+    <svg viewBox="0 0 24 24"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg>
+    <span>排行</span>
+  </button>
+  <button class="tab-item" onclick="switchTab('merchants',2)">
+    <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    <span>店家</span>
+  </button>
+  <button class="tab-item" onclick="switchTab('students',3)">
+    <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    <span>學生</span>
+  </button>
+</nav>
+
+<script>
+async function logout(){await fetch('/api/logout',{method:'POST'});location.href='/login';}
+
+let allStats=[], months=[], curMonth='';
+
+function switchTab(name, idx){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab-item').forEach((t,i)=>t.classList.toggle('active',i===idx));
+  document.getElementById('sec-'+name).classList.add('active');
+}
+
+function renderChart(){
+  const monthData=allStats.filter(r=>r.month===curMonth);
+  const maxCnt=Math.max(...monthData.map(r=>r.count),1);
+  document.getElementById('bar-chart').innerHTML=monthData.map(r=>`<div class="bar-row">
+    <div class="bar-room">${r.room}</div>
+    <div class="bar-wrap"><div class="bar" style="width:${Math.round(r.count/maxCnt*100)}%"></div></div>
+    <div class="bar-cnt">${r.count}</div>
+  </div>`).join('');
+  document.getElementById('co2-list').innerHTML=monthData.map(r=>`<div class="co2-row">
+    <span>${r.room}</span>
+    <span class="co2-val">${(r.count*0.5).toFixed(1)} kg</span>
+  </div>`).join('');
+}
+
+function selectMonth(m){
+  curMonth=m;
+  document.querySelectorAll('.mtab').forEach(t=>t.classList.toggle('active',t.textContent===m));
+  renderChart();
+}
+
+async function addMerchant(){
+  const name=document.getElementById('inp-merchant').value.trim();
+  const category=document.getElementById('inp-cat').value;
+  if(!name)return;
+  const res=await fetch('/api/merchants',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,category})});
+  if(res.ok){document.getElementById('inp-merchant').value='';loadMerchants();}
+  else{const d=await res.json();alert(d.error||'新增失敗');}
+}
+
+async function loadMerchants(){
+  const res=await fetch('/api/merchants');
+  const items=await res.json();
+  document.getElementById('merchant-list').innerHTML=items.length
+    ?items.map(m=>`<div class="merchant-row">
+        <span class="merchant-name">${m.name}</span>
+        <span class="cat-badge">${m.category||'未分類'}</span>
+      </div>`).join('')
+    :'<div style="font-size:.82rem;color:#a1a1aa;padding:8px 0">尚無店家</div>';
+}
+
+async function load(){
+  const [sr,rr,stuR]=await Promise.all([
+    fetch('/api/room-stats'),fetch('/api/rankings'),fetch('/api/students')
+  ]);
+  if(sr.status===401){location.href='/login';return;}
+  allStats=await sr.json();
+  const rankings=await rr.json();
+  const students=await stuR.json();
+
+  months=[...new Set(allStats.map(r=>r.month))].sort().reverse();
+  curMonth=curMonth||months[0]||'';
+  document.getElementById('month-tabs').innerHTML=months.map(m=>`<button class="mtab ${m===curMonth?'active':''}" onclick="selectMonth('${m}')">${m}</button>`).join('');
+  renderChart();
+
+  const posClass=['p1','p2','p3'];
+  document.getElementById('rank-list').innerHTML=rankings.map((r,i)=>`<div class="rank-card">
+    <div class="rank-pos ${posClass[i]||''}">${i+1}</div>
+    <div class="rank-info">
+      <div class="rank-name">${r.room}${i===0?'<span class="rank-tag">冠軍</span>':''}</div>
+      <div class="rank-sub">本月外送 ${r.count} 單</div>
+    </div>
+  </div>`).join('');
+
+  document.getElementById('student-grid').innerHTML=students.map(s=>`<div class="s-chip">
+    <div class="s-chip-name">${s.name}</div>
+    <div class="s-chip-id">${s.student_id}</div>
+    <div class="s-chip-room">${s.room}</div>
+  </div>`).join('');
+
+  loadMerchants();
+}
+
+load();
+</script>
+</body>
+</html>

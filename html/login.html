@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Heliaris 登入</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100vh;background:linear-gradient(135deg,#09090b 0%,#18181b 60%,#27272a 100%);display:flex;align-items:center;justify-content:center;font-family:system-ui,-apple-system,sans-serif}
+.card{background:#fff;border-radius:16px;padding:40px 36px;width:340px;box-shadow:0 24px 60px #00000066}
+.logo{text-align:center;margin-bottom:28px}
+.logo-text{font-size:1.5rem;font-weight:800;letter-spacing:.04em;color:#18181b}
+.logo-sub{font-size:.75rem;color:#a1a1aa;margin-top:2px}
+.tabs{display:flex;gap:6px;margin-bottom:24px;background:#f4f4f5;border-radius:8px;padding:4px}
+.tab{flex:1;text-align:center;padding:7px 0;border-radius:6px;font-size:.8rem;font-weight:600;cursor:pointer;color:#71717a;transition:all .2s}
+.tab.active{background:#fff;color:#18181b;box-shadow:0 1px 4px #0000001a}
+label{font-size:.75rem;font-weight:600;color:#52525b;display:block;margin-bottom:6px}
+input{width:100%;border:1.5px solid #e4e4e7;border-radius:8px;padding:11px 13px;font-size:.9rem;outline:none;transition:border .2s}
+input:focus{border-color:#18181b}
+.hint{font-size:.7rem;color:#a1a1aa;margin-top:5px}
+button{width:100%;background:#18181b;color:#fff;border:none;border-radius:8px;padding:13px;font-size:.88rem;font-weight:600;cursor:pointer;margin-top:20px;transition:background .2s}
+button:hover{background:#3f3f46}
+.err{color:#ef4444;font-size:.77rem;margin-top:10px;text-align:center;min-height:18px}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">
+    <div class="logo-text">Heliaris</div>
+    <div class="logo-sub">外送箱管理系統</div>
+  </div>
+  <div class="tabs">
+    <div class="tab active" onclick="setRole('student')">學生</div>
+    <div class="tab" onclick="setRole('delivery')">外送員</div>
+    <div class="tab" onclick="setRole('admin')">管理員</div>
+  </div>
+  <div>
+    <label id="id-label">學號</label>
+    <input id="inp" type="text" placeholder="輸入學號" autocomplete="off">
+    <div class="hint" id="hint">學號即為帳號與密碼</div>
+  </div>
+  <button onclick="doLogin()">登入</button>
+  <div class="err" id="err"></div>
+</div>
+<script>
+let role = 'student';
+function setRole(r) {
+  role = r;
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', ['student','delivery','admin'][i]===r));
+  const labels = {student:['學號','學號即為帳號與密碼'], delivery:['外送員帳號','帳號：delivery'], admin:['管理員帳號','帳號：admin']};
+  document.getElementById('id-label').textContent = labels[r][0];
+  document.getElementById('hint').textContent = labels[r][1];
+  document.getElementById('inp').placeholder = labels[r][0];
+  document.getElementById('err').textContent = '';
+}
+async function doLogin() {
+  const id = document.getElementById('inp').value.trim();
+  if (!id) { document.getElementById('err').textContent = '請輸入帳號'; return; }
+  const res = await fetch('/api/login', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id})});
+  const data = await res.json();
+  if (!res.ok) { document.getElementById('err').textContent = data.error; return; }
+  if (data.role === 'student') location.href = '/student';
+  else if (data.role === 'delivery') location.href = '/delivery';
+  else location.href = '/';
+}
+document.getElementById('inp').addEventListener('keydown', e => e.key==='Enter' && doLogin());
+</script>
+</body>
+</html>

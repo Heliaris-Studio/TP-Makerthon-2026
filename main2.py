@@ -4,11 +4,14 @@ import glob
 import time
 import threading
 import RPi.GPIO as GPIO
-from flask import Flask, jsonify, Response, request
+from flask import Flask, jsonify, Response, request, session, redirect
 import core.config as cfg
 from core.doors import init as doors_init, open_door, set_led
 from core.sensor import start as sensor_start, stop as sensor_stop
-from core.db import init_db, get_all_students, get_room_by_student
+from core.db import (init_db, get_account, get_all_students, get_room_by_student,
+                     get_my_orders, get_pending_order, add_order, pickup_order,
+                     get_points, get_room_monthly_stats, get_rankings, get_all_rooms_students,
+                     get_merchants, add_merchant)
 from core.buzzer import play_waiting, play_victory
 from core import camera
 
@@ -33,13 +36,72 @@ doors_init(servo_l, servo_r)
 init_db()
 
 app = Flask(__name__)
+app.secret_key = 'heliaris-v1.1-secret'
+
+def _html(name):
+    return open(os.path.join(os.path.dirname(__file__), 'html', name)).read()
+
+def _require(role=None):
+    acc = session.get('account')
+    if not acc:
+        return redirect('/login')
+    if role and acc['role'] != role:
+        return redirect('/login')
+    return None
 
 @app.route('/')
 def index():
-    return open(os.path.join(os.path.dirname(__file__), 'html', 'index.html')).read()
+    acc = session.get('account')
+    if not acc:
+        return redirect('/login')
+    if acc['role'] == 'admin':
+        return redirect('/admin-mobile')
+    if acc['role'] == 'student':
+        return redirect('/student')
+    if acc['role'] == 'delivery':
+        return redirect('/delivery')
+    return redirect('/login')
+
+@app.route('/login')
+def login_page():
+    return _html('login.html')
+
+@app.route('/api/login', methods=['POST'])
+def api_login():
+    data = request.get_json(silent=True) or {}
+    aid = data.get('id', '').strip()
+    if not aid:
+        return jsonify({"error": "請輸入帳號"}), 400
+    acc = get_account(aid)
+    if not acc:
+        return jsonify({"error": "帳號不存在"}), 401
+    session['account'] = acc
+    return jsonify({"ok": True, "role": acc['role'], "name": acc['name']})
+
+@app.route('/api/logout', methods=['POST'])
+def api_logout():
+    session.clear()
+    return jsonify({"ok": True})
+
+@app.route('/student')
+def student_page():
+    r = _require('student')
+    return r if r else _html('student.html')
+
+@app.route('/delivery')
+def delivery_page():
+    r = _require('delivery')
+    return r if r else _html('delivery.html')
+
+@app.route('/admin-mobile')
+def admin_mobile_page():
+    r = _require('admin')
+    return r if r else _html('admin_m.html')
 
 @app.route('/api/status')
 def api_status():
+    r = _require('admin')
+    if r: return jsonify({"error": "unauthorized"}), 401
     return jsonify(cfg.state)
 
 @app.route('/api/videos/clear', methods=['POST'])
@@ -78,19 +140,95 @@ def api_button(btn_num):
 
 @app.route('/api/students')
 def api_students():
+    r = _require('admin')
+    if r: return jsonify({"error": "unauthorized"}), 401
     return jsonify(get_all_students())
 
 @app.route('/api/open_by_student', methods=['POST'])
 def api_open_by_student():
+    acc = session.get('account')
+    if not acc or acc['role'] != 'student':
+        return jsonify({"error": "unauthorized"}), 401
+    sid = acc['id']
+    pending = get_pending_order(sid)
+    if not pending:
+        return jsonify({"error": "目前沒有待取餐點"}), 404
+    room = acc['room']
+    side = cfg.ROOM_SIDE.get(room)
+    cfg.state["last_event"] = f"學生 {acc['name']} ({room}) 開箱"
+    def task():
+        open_door(side, 'student')
+        pickup_order(pending['id'], sid)
+    threading.Thread(target=task, daemon=True).start()
+    return jsonify({"ok": True, "room": room, "side": side})
+
+@app.route('/api/my-orders')
+def api_my_orders():
+    acc = session.get('account')
+    if not acc or acc['role'] != 'student':
+        return jsonify({"error": "unauthorized"}), 401
+    pending = get_pending_order(acc['id'])
+    return jsonify({
+        "orders": get_my_orders(acc['id']),
+        "points": get_points(acc['id']),
+        "pending": pending,
+        "name": acc['name'],
+        "room": acc['room'],
+    })
+
+@app.route('/api/delivery/rooms')
+def api_delivery_rooms():
+    r = _require('delivery')
+    if r: return jsonify({"error": "unauthorized"}), 401
+    return jsonify(get_all_rooms_students())
+
+@app.route('/api/delivery/open', methods=['POST'])
+def api_delivery_open():
+    r = _require('delivery')
+    if r: return jsonify({"error": "unauthorized"}), 401
     data = request.get_json(silent=True) or {}
     sid = data.get('student_id', '').strip()
+    merchant = data.get('merchant', '外送').strip()
     room = get_room_by_student(sid)
     if not room:
-        return jsonify({"error": "學號不存在"}), 404
+        return jsonify({"error": "找不到學生"}), 404
     side = cfg.ROOM_SIDE.get(room)
-    cfg.state["last_event"] = f"學生 {sid} ({room}) 開箱"
-    threading.Thread(target=open_door, args=(side, 'student'), daemon=True).start()
-    return jsonify({"ok": True, "room": room, "side": side})
+    oid = add_order(sid, room, merchant)
+    cfg.state["last_event"] = f"外送員送達 {room} ({sid})"
+    threading.Thread(target=open_door, args=(side, 'delivery'), daemon=True).start()
+    return jsonify({"ok": True, "order_id": oid, "room": room, "side": side})
+
+@app.route('/admin')
+def admin_pc_page():
+    r = _require('admin')
+    return r if r else _html('index.html')
+
+@app.route('/api/merchants', methods=['GET'])
+def api_merchants_get():
+    return jsonify(get_merchants())
+
+@app.route('/api/merchants', methods=['POST'])
+def api_merchants_post():
+    r = _require('admin')
+    if r: return jsonify({"error": "unauthorized"}), 401
+    data = request.get_json(silent=True) or {}
+    name = data.get('name', '').strip()
+    category = data.get('category', '').strip()
+    if not name:
+        return jsonify({"error": "請輸入店家名稱"}), 400
+    add_merchant(name, category)
+    return jsonify({"ok": True})
+
+@app.route('/api/rankings')
+def api_rankings():
+    month = request.args.get('month')
+    return jsonify(get_rankings(month))
+
+@app.route('/api/room-stats')
+def api_room_stats():
+    r = _require('admin')
+    if r: return jsonify({"error": "unauthorized"}), 401
+    return jsonify(get_room_monthly_stats())
 
 @app.route('/stream')
 def stream():

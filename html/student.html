@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Heliaris 學生</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#f4f4f5;font-family:system-ui,-apple-system,sans-serif;min-height:100vh}
+header{background:#18181b;color:#fff;padding:14px 20px;display:flex;align-items:center;justify-content:space-between}
+header h1{font-size:.9rem;font-weight:700;letter-spacing:.06em}
+.logout{font-size:.75rem;color:#a1a1aa;cursor:pointer;background:none;border:none;color:#a1a1aa}
+.logout:hover{color:#fff}
+main{max-width:480px;margin:0 auto;padding:18px 14px;display:flex;flex-direction:column;gap:14px}
+.card{background:#fff;border:1px solid #e4e4e7;border-radius:12px;padding:20px}
+.card-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#a1a1aa;margin-bottom:14px}
+.name-row{font-size:1.1rem;font-weight:700;color:#18181b}
+.room-row{font-size:.82rem;color:#71717a;margin-top:4px}
+.points-big{font-size:2.8rem;font-weight:800;color:#18181b;line-height:1}
+.points-label{font-size:.78rem;color:#71717a;margin-top:4px}
+.pending-box{background:#fefce8;border:1.5px solid #fde047;border-radius:10px;padding:16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.pending-info{font-size:.88rem;font-weight:600;color:#854d0e}
+.pending-merchant{font-size:.78rem;color:#92400e;margin-top:2px}
+.no-pending{color:#a1a1aa;font-size:.82rem;text-align:center;padding:10px 0}
+.open-btn{background:#18181b;color:#fff;border:none;border-radius:8px;padding:11px 18px;font-size:.82rem;font-weight:600;cursor:pointer;white-space:nowrap}
+.open-btn:disabled{opacity:.35;cursor:not-allowed}
+.open-btn:hover:not(:disabled){background:#3f3f46}
+.rank-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #f4f4f5}
+.rank-row:last-child{border:none}
+.rank-num{width:24px;text-align:center;font-size:.78rem;font-weight:700;color:#a1a1aa}
+.rank-num.gold{color:#f59e0b}
+.rank-room{font-size:.88rem;font-weight:600;flex:1}
+.rank-bar-wrap{flex:2;background:#f4f4f5;border-radius:4px;height:8px;overflow:hidden}
+.rank-bar{height:100%;border-radius:4px;background:#18181b;transition:width .6s}
+.rank-cnt{font-size:.78rem;color:#71717a;width:36px;text-align:right}
+.order-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f4f4f5;font-size:.82rem}
+.order-row:last-child{border:none}
+.order-merchant{font-weight:600}
+.order-date{color:#a1a1aa;font-size:.72rem}
+.badge{padding:2px 8px;border-radius:5px;font-size:.68rem;font-weight:600}
+.badge-yellow{background:#fef9c3;color:#92400e}
+.badge-gray{background:#f4f4f5;color:#71717a}
+</style>
+</head>
+<body>
+<header>
+  <h1>Heliaris</h1>
+  <button class="logout" onclick="logout()">登出</button>
+</header>
+<main>
+  <div class="card">
+    <div class="card-label">我的帳戶</div>
+    <div class="name-row" id="name">—</div>
+    <div class="room-row" id="room">—</div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">待取餐點</div>
+    <div id="pending-area"><div class="no-pending">目前沒有待取餐點</div></div>
+  </div>
+
+  <div class="card" style="display:flex;align-items:flex-end;justify-content:space-between">
+    <div>
+      <div class="card-label">我的積分</div>
+      <div class="points-big" id="pts">—</div>
+      <div class="points-label">點數越多代表你點外賣越少</div>
+    </div>
+    <div style="color:#a1a1aa">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg>
+    </div>
+  </div>
+
+  <div class="card" style="text-align:center">
+    <div class="card-label" style="justify-content:center">幸運轉盤（積分兌換獎勵）</div>
+    <div style="position:relative;display:inline-block;margin-bottom:14px">
+      <canvas id="wheel" width="220" height="220" style="border-radius:50%;border:5px solid #18181b;display:block"></canvas>
+      <div id="wheel-pointer" style="position:absolute;top:-8px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:9px solid transparent;border-right:9px solid transparent;border-top:18px solid #ef4444"></div>
+    </div>
+    <div><button class="open-btn" id="spin-btn" onclick="spinWheel()">開始轉盤</button></div>
+    <div id="spin-result" style="margin-top:12px;font-size:.95rem;font-weight:700;color:#18181b;min-height:24px"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">本月房間排行（外送最少得第一）</div>
+    <div id="rank-list"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">近期訂單記錄</div>
+    <div id="order-list"></div>
+  </div>
+</main>
+<script>
+async function logout(){
+  await fetch('/api/logout',{method:'POST'});
+  location.href='/login';
+}
+
+async function openBox(){
+  document.getElementById('open-btn').disabled=true;
+  const res=await fetch('/api/open_by_student',{method:'POST'});
+  const d=await res.json();
+  if(!res.ok){alert(d.error);document.getElementById('open-btn').disabled=false;return;}
+  alert('開箱成功！請前往取餐');
+  load();
+}
+
+async function load(){
+  const res=await fetch('/api/my-orders');
+  if(res.status===401){location.href='/login';return;}
+  const d=await res.json();
+  document.getElementById('name').textContent=d.name;
+  document.getElementById('room').textContent=`宿舍：${d.room}`;
+  document.getElementById('pts').textContent=d.points;
+
+  const pa=document.getElementById('pending-area');
+  if(d.pending){
+    pa.innerHTML=`<div class="pending-box">
+      <div>
+        <div class="pending-info" style="display:flex;align-items:center;gap:6px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg> 餐點已送達，請前往取餐</div>
+        <div class="pending-merchant">${d.pending.merchant}</div>
+      </div>
+      <button class="open-btn" id="open-btn" onclick="openBox()">開箱</button>
+    </div>`;
+  } else {
+    pa.innerHTML='<div class="no-pending">目前沒有待取餐點</div>';
+  }
+
+  const ol=document.getElementById('order-list');
+  if(!d.orders.length){ol.innerHTML='<div class="no-pending">尚無訂單記錄</div>';return;}
+  ol.innerHTML=d.orders.map(o=>`<div class="order-row">
+    <div><div class="order-merchant">${o.merchant}</div><div class="order-date">${o.delivered_at||o.month}</div></div>
+    <span class="badge ${o.status==='delivered'?'badge-yellow':'badge-gray'}">${o.status==='delivered'?'待取':'已取'}</span>
+  </div>`).join('');
+
+  const rr=await fetch('/api/rankings');
+  const ranks=await rr.json();
+  const maxCnt=Math.max(...ranks.map(r=>r.count),1);
+  document.getElementById('rank-list').innerHTML=ranks.map((r,i)=>`<div class="rank-row">
+    <div class="rank-num ${i===0?'gold':''}">${i+1}</div>
+    <div class="rank-room">${r.room}</div>
+    <div class="rank-bar-wrap"><div class="rank-bar" style="width:${Math.round(r.count/maxCnt*100)}%"></div></div>
+    <div class="rank-cnt">${r.count} 單</div>
+  </div>`).join('');
+}
+
+load();
+setInterval(load,10000);
+
+// ── Spin wheel ──
+const PRIZES=['運費折抵 $30','運費折抵 $50','AI點數 50點','AI點數 100點','電費抵免 5元','電費抵免 10元','環保餐盒券','折扣券 85折'];
+const WCOLORS=['#18181b','#3f3f46','#52525b','#71717a','#a1a1aa','#d4d4d8','#e4e4e7','#f4f4f5'];
+let wDeg=0, wSpinning=false;
+
+function drawWheel(rotDeg=0){
+  const canvas=document.getElementById('wheel');
+  if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  const n=PRIZES.length,cx=110,cy=110,r=104;
+  ctx.clearRect(0,0,220,220);
+  ctx.save();ctx.translate(cx,cy);ctx.rotate(rotDeg*Math.PI/180);ctx.translate(-cx,-cy);
+  PRIZES.forEach((p,i)=>{
+    const a1=(i/n)*2*Math.PI-Math.PI/2;
+    const a2=((i+1)/n)*2*Math.PI-Math.PI/2;
+    ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,a1,a2);ctx.closePath();
+    ctx.fillStyle=WCOLORS[i%WCOLORS.length];ctx.fill();
+    ctx.save();ctx.translate(cx,cy);ctx.rotate((a1+a2)/2);
+    ctx.textAlign='right';ctx.fillStyle=i%2===0?'#fff':'#18181b';
+    ctx.font='bold 9px system-ui';ctx.fillText(p.slice(0,8),r-6,3);
+    ctx.restore();
+  });
+  ctx.beginPath();ctx.arc(cx,cy,16,0,2*Math.PI);ctx.fillStyle='#fff';ctx.fill();
+  ctx.restore();
+}
+
+function spinWheel(){
+  if(wSpinning)return;
+  wSpinning=true;
+  const btn=document.getElementById('spin-btn');
+  btn.disabled=true;
+  document.getElementById('spin-result').textContent='';
+  const extra=1800+Math.random()*360;
+  const target=wDeg+extra;
+  const duration=2200;
+  const start=performance.now();
+  const from=wDeg;
+  function animate(now){
+    const t=Math.min((now-start)/duration,1);
+    const ease=t<.5?4*t*t*t:(t-1)*(2*t-2)*(2*t-2)+1;
+    const cur=from+extra*ease;
+    drawWheel(cur);
+    if(t<1){requestAnimationFrame(animate);}
+    else{
+      wDeg=target%360;
+      const n=PRIZES.length;
+      const idx=Math.floor(((360-wDeg)%360)/360*n)%n;
+      document.getElementById('spin-result').textContent='獲得：'+PRIZES[idx];
+      wSpinning=false;btn.disabled=false;
+    }
+  }
+  requestAnimationFrame(animate);
+}
+
+drawWheel();
+</script>
+</body>
+</html>
