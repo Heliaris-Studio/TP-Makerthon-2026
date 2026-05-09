@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Heliaris 管理介面</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;background:#f4f4f5;color:#18181b;min-height:100vh}
+header{background:#18181b;color:#fff;padding:12px 24px;display:flex;align-items:center;justify-content:space-between}
+header h1{font-size:.9rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+#clock{font-size:.78rem;opacity:.45;font-variant-numeric:tabular-nums}
+.event-bar{background:#fff;border-bottom:1px solid #e4e4e7;padding:6px 24px;font-size:.78rem;color:#71717a}
+#event-text{color:#18181b;font-weight:500}
+main{max-width:1100px;margin:22px auto;padding:0 18px;display:flex;flex-direction:column;gap:18px}
+.top{display:grid;grid-template-columns:1fr 380px;gap:18px}
+.card{background:#fff;border:1px solid #e4e4e7;border-radius:10px;padding:20px}
+.card-label{font-size:.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.09em;color:#a1a1aa;margin-bottom:14px}
+.cam-wrap{background:#09090b;border-radius:6px;overflow:hidden;aspect-ratio:4/3;display:flex;align-items:center;justify-content:center}
+.cam-wrap img{width:100%;height:100%;object-fit:cover;display:block}
+.cam-off{color:#52525b;font-size:.82rem}
+.stat-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f4f4f5}
+.stat-row:last-child{border:none}
+.stat-name{font-size:.82rem;color:#52525b}
+.stat-val{font-size:.88rem;font-weight:600}
+.led-group{display:flex;gap:8px;align-items:center}
+.led{width:12px;height:12px;border-radius:50%;background:#e4e4e7;transition:background .3s}
+.led.green-on{background:#22c55e;box-shadow:0 0 6px #22c55e88}
+.led.red-on{background:#ef4444;box-shadow:0 0 6px #ef444488}
+.badge{padding:2px 9px;border-radius:5px;font-size:.7rem;font-weight:600}
+.badge-green{background:#dcfce7;color:#15803d}
+.badge-red{background:#fee2e2;color:#b91c1c}
+.badge-gray{background:#f4f4f5;color:#71717a}
+.controls{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.ctrl-card{background:#fff;border:1px solid #e4e4e7;border-radius:10px;padding:18px}
+.ctrl-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+button{border:none;border-radius:7px;font-size:.82rem;font-weight:500;cursor:pointer;padding:9px 14px;transition:background .15s}
+.btn-dark{background:#18181b;color:#fff}
+.btn-dark:hover:not(:disabled){background:#3f3f46}
+.btn-green{background:#dcfce7;color:#15803d}
+.btn-green:hover:not(:disabled){background:#bbf7d0}
+.btn-red{background:#fee2e2;color:#b91c1c}
+.btn-red:hover:not(:disabled){background:#fecaca}
+.btn-danger{background:#b91c1c;color:#fff}
+.btn-danger:hover:not(:disabled){background:#991b1b}
+button:disabled{opacity:.35;cursor:not-allowed}
+.students-card{background:#fff;border:1px solid #e4e4e7;border-radius:10px;padding:20px}
+table{width:100%;border-collapse:collapse;font-size:.82rem;margin-top:10px}
+th{text-align:left;font-size:.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#a1a1aa;padding:6px 8px;border-bottom:1px solid #e4e4e7}
+td{padding:8px 8px;border-bottom:1px solid #f4f4f5;color:#3f3f46}
+tr:last-child td{border:none}
+@media(max-width:700px){.top{grid-template-columns:1fr}.controls{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Heliaris 外送管理系統</h1>
+  <span id="clock"></span>
+</header>
+<div class="event-bar">最後事件：<span id="event-text">—</span></div>
+
+<main>
+  <div class="top">
+    <div class="card">
+      <div class="card-label">攝影機串流</div>
+      <div class="cam-wrap">
+        <span class="cam-off" id="cam-off">攝影機未啟動</span>
+        <img id="cam-img" src="/stream" style="display:none" alt="cam">
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">系統狀態</div>
+      <div class="stat-row">
+        <span class="stat-name">超音波距離</span>
+        <span class="stat-val" id="dist-val">— cm</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-name">錄影狀態</span>
+        <span class="badge badge-gray" id="rec-badge">未錄影</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-name">左門</span>
+        <span class="badge badge-gray" id="door-l-badge">關閉</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-name">右門</span>
+        <span class="badge badge-gray" id="door-r-badge">關閉</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-name">左側 LED</span>
+        <div class="led-group">
+          <div class="led" id="led-lg"></div><span style="font-size:.72rem;color:#52525b">綠</span>
+          <div class="led" id="led-lr"></div><span style="font-size:.72rem;color:#52525b">紅</span>
+        </div>
+      </div>
+      <div class="stat-row">
+        <span class="stat-name">右側 LED</span>
+        <div class="led-group">
+          <div class="led" id="led-rg"></div><span style="font-size:.72rem;color:#52525b">綠</span>
+          <div class="led" id="led-rr"></div><span style="font-size:.72rem;color:#52525b">紅</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="ctrl-card">
+      <div class="card-label">門控制</div>
+      <div class="ctrl-grid">
+        <button class="btn-dark" id="btn-door-l" onclick="triggerDoor('left')">開左門</button>
+        <button class="btn-dark" id="btn-door-r" onclick="triggerDoor('right')">開右門</button>
+      </div>
+    </div>
+
+    <div class="ctrl-card">
+      <div class="card-label">LED 控制</div>
+      <div class="ctrl-grid">
+        <button class="btn-green" onclick="triggerLed('left','green','on')">左綠 ON</button>
+        <button class="btn-red"   onclick="triggerLed('left','red','on')">左紅 ON</button>
+        <button class="btn-green" onclick="triggerLed('right','green','on')">右綠 ON</button>
+        <button class="btn-red"   onclick="triggerLed('right','red','on')">右紅 ON</button>
+      </div>
+    </div>
+
+    <div class="ctrl-card">
+      <div class="card-label">按鈕模擬</div>
+      <div class="ctrl-grid">
+        <button class="btn-dark" onclick="triggerButton(1)">按鈕1 B301</button>
+        <button class="btn-dark" onclick="triggerButton(2)">按鈕2 B302</button>
+        <button class="btn-dark" onclick="triggerButton(3)">按鈕3 B405</button>
+        <button class="btn-dark" onclick="triggerButton(4)">按鈕4 B406</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="ctrl-card" style="background:#fff;border:1px solid #e4e4e7;border-radius:10px;padding:18px;display:flex;align-items:center;justify-content:space-between">
+    <div>
+      <div class="card-label" style="margin:0">錄影管理</div>
+    </div>
+    <button class="btn-danger" onclick="clearVideos()">清除所有錄影</button>
+  </div>
+
+  <div class="students-card">
+    <div class="card-label">學生資料庫</div>
+    <table>
+      <thead><tr><th>學號</th><th>姓名</th><th>宿舍房號</th></tr></thead>
+      <tbody id="student-tbody"></tbody>
+    </table>
+  </div>
+</main>
+
+<script>
+(function tick(){
+  const d=new Date(),p=n=>String(n).padStart(2,'0');
+  document.getElementById('clock').textContent=`${d.getFullYear()}/${p(d.getMonth()+1)}/${p(d.getDate())}  ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+  setTimeout(tick,1000);
+})();
+
+function badge(el,text,cls){el.textContent=text;el.className='badge '+cls}
+function led(id,on,cls){const e=document.getElementById(id);e.className='led '+(on?cls:'')}
+
+function poll(){
+  fetch('/api/status').then(r=>r.json()).then(d=>{
+    document.getElementById('dist-val').textContent=d.distance!==null?d.distance+' cm':'— cm';
+    badge(document.getElementById('rec-badge'),d.recording?'錄影中':'未錄影',d.recording?'badge-green':'badge-gray');
+    badge(document.getElementById('door-l-badge'),d.door_left==='open'?'開啟中':'關閉',d.door_left==='open'?'badge-green':'badge-red');
+    badge(document.getElementById('door-r-badge'),d.door_right==='open'?'開啟中':'關閉',d.door_right==='open'?'badge-green':'badge-red');
+    document.getElementById('btn-door-l').disabled=d.door_left==='open';
+    document.getElementById('btn-door-r').disabled=d.door_right==='open';
+    led('led-lg',d.led_l_green,'green-on');
+    led('led-lr',d.led_l_red,'red-on');
+    led('led-rg',d.led_r_green,'green-on');
+    led('led-rr',d.led_r_red,'red-on');
+    const show=d.recording;
+    document.getElementById('cam-off').style.display=show?'none':'';
+    document.getElementById('cam-img').style.display=show?'block':'none';
+    if(d.last_event) document.getElementById('event-text').textContent=d.last_event;
+  }).catch(()=>{});
+}
+
+function triggerDoor(side){fetch('/api/door/'+side,{method:'POST'}).catch(()=>{})}
+function triggerLed(side,color,action){fetch(`/api/led/${side}/${color}/${action}`,{method:'POST'}).catch(()=>{})}
+function triggerButton(n){fetch('/api/button/'+n,{method:'POST'}).catch(()=>{})}
+function clearVideos(){if(!confirm('確定要清除所有錄影？'))return;fetch('/api/videos/clear',{method:'POST'}).then(()=>alert('已清除')).catch(()=>{})}
+
+fetch('/api/students').then(r=>r.json()).then(rows=>{
+  const tb=document.getElementById('student-tbody');
+  rows.forEach(s=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${s.student_id}</td><td>${s.name}</td><td>${s.room}</td>`;
+    tb.appendChild(tr);
+  });
+}).catch(()=>{});
+
+setInterval(poll,1000);poll();
+</script>
+</body>
+</html>
