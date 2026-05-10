@@ -364,6 +364,19 @@ def pickup_order(order_id: int, student_id: str):
 
 # ── 積分 ──────────────────────────────────────────────────
 
+def get_points(account_id: str) -> int:
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute('SELECT room FROM accounts WHERE id=?', (account_id,))
+    row = c.fetchone()
+    if not row or not row[0]:
+        conn.close()
+        return 0
+    c.execute('SELECT total FROM room_points WHERE room=?', (row[0],))
+    pts = c.fetchone()
+    conn.close()
+    return pts[0] if pts else 0
+
 def get_room_points(room: str) -> int:
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()

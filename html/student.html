@@ -285,7 +285,7 @@ header h1{font-size:.9rem;font-weight:700;letter-spacing:.06em}
   </button>
   <button class="tab-item" onclick="switchTab('orders',4)">
     <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-    <span>訂單</span>
+    <span>歷史訂單</span>
   </button>
 </nav>
 
@@ -436,14 +436,17 @@ async function renderRankings(){
   const ranks=await rr.json();
   if(!Array.isArray(ranks)||!ranks.length) return;
   const mx=Math.max(...ranks.map(r=>r.count));
-  const M=[{bg:'#fef9c3',c:'#92400e',t:'🥇'},{bg:'#f0f0f0',c:'#52525b',t:'🥈'},
-           {bg:'#fde8d8',c:'#9a3412',t:'🥉'},{bg:'#f4f4f5',c:'#a1a1aa',t:'4'}];
+  const FB=['🥇','🥈','🥉','4'];
   document.getElementById('rank-list').innerHTML=ranks.map((r,i)=>{
-    const m=M[i]||M[3];
+    const fb=FB[i]||String(i+1);
     return `<div class="rank-row">
-      <div class="rank-medal" style="background:${m.bg};color:${m.c}">${m.t}</div>
+      <div class="rank-medal">
+        <img src="/image/no${i+1}.png" alt="${i+1}" style="width:32px;height:32px;object-fit:contain"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='inline'">
+        <span style="display:none;font-size:1.2rem">${fb}</span>
+      </div>
       <div class="rank-room">${r.room}</div>
-      <div class="rank-bar-wrap"><div class="rank-bar" style="width:${Math.round(r.count/mx*100)}%"></div></div>
+      <div class="rank-bar-wrap"><div class="rank-bar" style="width:${mx?Math.round(r.count/mx*100):0}%"></div></div>
       <div class="rank-cnt">${r.count}單</div></div>`;
   }).join('');
 }

@@ -3,15 +3,18 @@ import os
 import glob
 import time
 import threading
+import queue
+import json
 import RPi.GPIO as GPIO
-from flask import Flask, jsonify, Response, request, session, redirect
+from flask import Flask, jsonify, Response, request, session, redirect, send_from_directory
 import core.config as cfg
 from core.doors import init as doors_init, open_door, set_led
 from core.sensor import start as sensor_start, stop as sensor_stop
 from core.db import (init_db, get_account, get_all_students, get_room_by_student,
                      get_my_orders, get_pending_order, add_order, pickup_order,
                      get_points, get_room_monthly_stats, get_rankings, get_all_rooms_students,
-                     get_merchants, add_merchant)
+                     get_merchants, add_merchant, get_room_merchant_stats,
+                     get_all_merchant_profiles, get_room_points, get_active_order)
 from core.buzzer import play_waiting, play_victory
 from core import camera
 
@@ -37,6 +40,23 @@ init_db()
 
 app = Flask(__name__)
 app.secret_key = 'heliaris-v1.1-secret'
+
+# ── SSE subscription queues ───────────────────────────────
+_subs_lock = threading.Lock()
+_room_subs = {}   # room -> [Queue, ...]
+_order_subs = {}  # student_id -> [Queue, ...]
+
+def _broadcast_points(room, pts):
+    with _subs_lock:
+        for q in _room_subs.get(room, []):
+            try: q.put_nowait(pts)
+            except queue.Full: pass
+
+def _broadcast_order(student_id, data):
+    with _subs_lock:
+        for q in _order_subs.get(student_id, []):
+            try: q.put_nowait(json.dumps(data, ensure_ascii=False))
+            except queue.Full: pass
 
 def _html(name):
     return open(os.path.join(os.path.dirname(__file__), 'html', name)).read()
@@ -82,6 +102,13 @@ def api_login():
 def api_logout():
     session.clear()
     return jsonify({"ok": True})
+
+@app.route('/api/me')
+def api_me():
+    acc = session.get('account')
+    if not acc:
+        return jsonify({"error": "not logged in"}), 401
+    return jsonify({"name": acc['name'], "role": acc['role']})
 
 @app.route('/student')
 def student_page():
@@ -195,6 +222,7 @@ def api_delivery_open():
     side = cfg.ROOM_SIDE.get(room)
     oid = add_order(sid, room, merchant)
     cfg.state["last_event"] = f"外送員送達 {room} ({sid})"
+    _broadcast_order(sid, {"type": "delivered", "order_id": oid, "merchant": merchant, "compartment": None})
     threading.Thread(target=open_door, args=(side, 'delivery'), daemon=True).start()
     return jsonify({"ok": True, "order_id": oid, "room": room, "side": side})
 
@@ -229,6 +257,79 @@ def api_room_stats():
     r = _require('admin')
     if r: return jsonify({"error": "unauthorized"}), 401
     return jsonify(get_room_monthly_stats())
+
+@app.route('/api/room-merchant-stats')
+def api_room_merchant_stats():
+    r = _require('admin')
+    if r: return jsonify({"error": "unauthorized"}), 401
+    return jsonify(get_room_merchant_stats())
+
+@app.route('/image/<path:filename>')
+def serve_image(filename):
+    img_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'image')
+    return send_from_directory(img_dir, filename)
+
+@app.route('/favicon.ico')
+def favicon():
+    return '', 204
+
+@app.route('/api/merchants/public')
+def api_merchants_public():
+    return jsonify(get_all_merchant_profiles())
+
+@app.route('/api/points-stream')
+def api_points_stream():
+    acc = session.get('account')
+    if not acc or acc['role'] != 'student':
+        return jsonify({"error": "unauthorized"}), 401
+    room = acc['room']
+    q = queue.Queue(maxsize=20)
+    with _subs_lock:
+        _room_subs.setdefault(room, []).append(q)
+    def generate():
+        try:
+            yield f"data: {get_room_points(room)}\n\n"
+            while True:
+                try:
+                    pts = q.get(timeout=25)
+                    yield f"data: {pts}\n\n"
+                except queue.Empty:
+                    yield ": keepalive\n\n"
+        finally:
+            with _subs_lock:
+                subs = _room_subs.get(room, [])
+                if q in subs:
+                    subs.remove(q)
+    return Response(generate(), mimetype='text/event-stream',
+                    headers={'Cache-Control': 'no-cache', 'X-Accel-Buffering': 'no'})
+
+@app.route('/api/order-stream')
+def api_order_stream():
+    acc = session.get('account')
+    if not acc or acc['role'] != 'student':
+        return jsonify({"error": "unauthorized"}), 401
+    sid = acc['id']
+    q = queue.Queue(maxsize=20)
+    with _subs_lock:
+        _order_subs.setdefault(sid, []).append(q)
+    def generate():
+        try:
+            active = get_active_order(sid)
+            if active:
+                yield f"data: {json.dumps(active, ensure_ascii=False)}\n\n"
+            while True:
+                try:
+                    data = q.get(timeout=25)
+                    yield f"data: {data}\n\n"
+                except queue.Empty:
+                    yield ": keepalive\n\n"
+        finally:
+            with _subs_lock:
+                subs = _order_subs.get(sid, [])
+                if q in subs:
+                    subs.remove(q)
+    return Response(generate(), mimetype='text/event-stream',
+                    headers={'Cache-Control': 'no-cache', 'X-Accel-Buffering': 'no'})
 
 @app.route('/stream')
 def stream():
