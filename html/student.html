@@ -2,206 +2,484 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <title>Heliaris 學生</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:#f4f4f5;font-family:system-ui,-apple-system,sans-serif;min-height:100vh}
-header{background:#18181b;color:#fff;padding:14px 20px;display:flex;align-items:center;justify-content:space-between}
+:root{--bg:#f4f4f5;--card:#fff;--border:#e4e4e7;--ink:#18181b;--muted:#71717a;--dim:#a1a1aa;--tab-h:64px}
+html{height:100%}
+body{background:var(--bg);font-family:system-ui,-apple-system,sans-serif;min-height:100%;padding-bottom:calc(var(--tab-h) + 20px)}
+
+/* ── header ──────────────────────────────── */
+header{background:var(--ink);color:#fff;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
 header h1{font-size:.9rem;font-weight:700;letter-spacing:.06em}
-.logout{font-size:.75rem;color:#a1a1aa;cursor:pointer;background:none;border:none;color:#a1a1aa}
-.logout:hover{color:#fff}
-main{max-width:480px;margin:0 auto;padding:18px 14px;display:flex;flex-direction:column;gap:14px}
-.card{background:#fff;border:1px solid #e4e4e7;border-radius:12px;padding:20px}
-.card-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#a1a1aa;margin-bottom:14px}
-.name-row{font-size:1.1rem;font-weight:700;color:#18181b}
-.room-row{font-size:.82rem;color:#71717a;margin-top:4px}
-.points-big{font-size:2.8rem;font-weight:800;color:#18181b;line-height:1}
-.points-label{font-size:.78rem;color:#71717a;margin-top:4px}
-.pending-box{background:#fefce8;border:1.5px solid #fde047;border-radius:10px;padding:16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
-.pending-info{font-size:.88rem;font-weight:600;color:#854d0e}
-.pending-merchant{font-size:.78rem;color:#92400e;margin-top:2px}
-.no-pending{color:#a1a1aa;font-size:.82rem;text-align:center;padding:10px 0}
-.open-btn{background:#18181b;color:#fff;border:none;border-radius:8px;padding:11px 18px;font-size:.82rem;font-weight:600;cursor:pointer;white-space:nowrap}
+.hbtns{display:flex;gap:8px}
+.hbtn{font-size:.75rem;background:none;border:1px solid #3f3f46;color:#a1a1aa;border-radius:6px;padding:5px 10px;cursor:pointer;display:flex;align-items:center;gap:4px}
+.hbtn:hover{color:#fff;border-color:#71717a}
+.hbtn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* ── pages / sections ──────────────────────── */
+.pages{}
+.page{display:none}
+.page.active{display:block}
+.section{max-width:520px;margin:0 auto;padding:18px 14px;display:flex;flex-direction:column;gap:14px}
+
+/* ── tab bar ──────────────────────────────── */
+nav.tabs{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--border);display:flex;z-index:20;height:var(--tab-h)}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:var(--dim);transition:color .15s;border:none;background:none;padding:8px 0}
+.tab.active{color:var(--ink)}
+.tab svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tab span{font-size:.64rem;font-weight:600;letter-spacing:.03em}
+
+/* ── card ─────────────────────────────────── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px}
+.card-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);margin-bottom:14px;display:flex;align-items:center;gap:6px}
+.card-label svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* ── account info ────────────────────────── */
+.name-row{font-size:1.1rem;font-weight:700;color:var(--ink)}
+.room-row{font-size:.8rem;color:var(--muted);margin-top:4px}
+
+/* ── points hero ─────────────────────────── */
+.pts-hero{background:var(--ink);color:#fff;border-radius:12px;padding:22px 20px;display:flex;flex-direction:column;gap:16px}
+.pts-hero-top{display:flex;align-items:flex-start;justify-content:space-between}
+.pts-hero-top h2{font-size:2.6rem;font-weight:900;line-height:1;letter-spacing:-.02em}
+.pts-hero-top p{font-size:.72rem;opacity:.55;margin-top:6px;font-weight:500}
+.pts-badge{background:rgba(255,255,255,.15);border-radius:6px;padding:4px 10px;font-size:.68rem;font-weight:600;white-space:nowrap}
+.checkin-btn{background:rgba(255,255,255,.12);color:#fff;border:1.5px solid rgba(255,255,255,.25);border-radius:10px;padding:12px 16px;font-size:.82rem;font-weight:700;cursor:pointer;text-align:center;width:100%}
+.checkin-btn:active{background:rgba(255,255,255,.2)}
+
+/* ── pending ──────────────────────────────── */
+.pending-box{background:#fef9c3;border:1px solid #fde68a;border-radius:10px;padding:14px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.pending-info{font-size:.86rem;font-weight:600;color:#854d0e}
+.pending-merchant{font-size:.74rem;color:#92400e;margin-top:2px}
+.no-pending{color:var(--dim);font-size:.82rem;text-align:center;padding:8px 0}
+.open-btn{background:var(--ink);color:#fff;border:none;border-radius:8px;padding:10px 16px;font-size:.8rem;font-weight:600;cursor:pointer;white-space:nowrap}
 .open-btn:disabled{opacity:.35;cursor:not-allowed}
-.open-btn:hover:not(:disabled){background:#3f3f46}
+
+/* ── rank rows (admin style) ────────────────── */
 .rank-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #f4f4f5}
 .rank-row:last-child{border:none}
-.rank-num{width:24px;text-align:center;font-size:.78rem;font-weight:700;color:#a1a1aa}
-.rank-num.gold{color:#f59e0b}
-.rank-room{font-size:.88rem;font-weight:600;flex:1}
-.rank-bar-wrap{flex:2;background:#f4f4f5;border-radius:4px;height:8px;overflow:hidden}
-.rank-bar{height:100%;border-radius:4px;background:#18181b;transition:width .6s}
-.rank-cnt{font-size:.78rem;color:#71717a;width:36px;text-align:right}
-.order-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f4f4f5;font-size:.82rem}
+.rank-medal{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.78rem;flex-shrink:0;font-weight:700}
+.rank-room{font-size:.86rem;font-weight:700;flex:1;color:var(--ink)}
+.rank-bar-wrap{flex:2;background:#f4f4f5;border-radius:4px;height:7px;overflow:hidden}
+.rank-bar{height:100%;border-radius:4px;background:var(--ink);transition:width .7s cubic-bezier(.4,0,.2,1)}
+.rank-cnt{font-size:.75rem;color:var(--muted);width:38px;text-align:right}
+
+/* ── order rows ───────────────────────────── */
+.order-row{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid #f4f4f5;font-size:.82rem;gap:12px}
 .order-row:last-child{border:none}
 .order-merchant{font-weight:600}
-.order-date{color:#a1a1aa;font-size:.72rem}
-.badge{padding:2px 8px;border-radius:5px;font-size:.68rem;font-weight:600}
+.order-date{color:var(--dim);font-size:.7rem;margin-top:3px}
+.badge{padding:2px 8px;border-radius:5px;font-size:.66rem;font-weight:700;white-space:nowrap}
 .badge-yellow{background:#fef9c3;color:#92400e}
-.badge-gray{background:#f4f4f5;color:#71717a}
+.badge-gray{background:#f4f4f5;color:var(--muted)}
+
+/* ── spin wheel ──────────────────────────── */
+.spin-wrap{display:flex;flex-direction:column;align-items:center;gap:16px;padding-top:6px}
+.wheel-outer{position:relative;display:inline-block}
+#wheel{border-radius:50%;border:5px solid var(--ink);display:block;box-shadow:0 8px 24px rgba(0,0,0,.12)}
+#wheel-pointer{position:absolute;top:-11px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:11px solid transparent;border-right:11px solid transparent;border-top:22px solid #ef4444;filter:drop-shadow(0 2px 4px rgba(0,0,0,.25))}
+.spin-btn{background:var(--ink);color:#fff;border:none;border-radius:10px;padding:12px 36px;font-size:.92rem;font-weight:700;cursor:pointer}
+.spin-btn:disabled{opacity:.35;cursor:not-allowed}
+.spin-result{font-size:1rem;font-weight:700;color:#16a34a;min-height:24px;text-align:center}
+.spin-note{font-size:.72rem;color:var(--dim);text-align:center}
+
+/* ── store ────────────────────────────────── */
+.store-pts-bar{background:var(--ink);color:#fff;border-radius:12px;padding:18px 20px;display:flex;align-items:center;justify-content:space-between}
+.store-pts-bar h3{font-size:1.7rem;font-weight:900;letter-spacing:-.02em;line-height:1}
+.store-pts-bar p{font-size:.7rem;opacity:.55;margin-top:4px}
+.store-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.store-item{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 12px;display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;text-align:center;transition:transform .12s,border-color .12s}
+.store-item:hover{border-color:#a1a1aa}
+.store-item:active{transform:scale(.96)}
+.store-icon{font-size:2.1rem;line-height:1}
+.store-name{font-size:.8rem;font-weight:700;color:var(--ink)}
+.store-desc{font-size:.66rem;color:var(--muted);line-height:1.5}
+.store-cost{background:#f4f4f5;color:var(--ink);border-radius:6px;padding:3px 10px;font-size:.7rem;font-weight:700;margin-top:2px}
+
+/* ── modal ────────────────────────────────── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:50;align-items:flex-end;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal-sheet{background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:520px;padding:22px 20px 32px;animation:slideUp .25s ease}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-title{font-size:1.05rem;font-weight:700;margin-bottom:6px}
+.modal-desc{font-size:.8rem;color:var(--muted);margin-bottom:20px;line-height:1.6}
+.modal-cost-row{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:20px}
+.modal-cost-big{font-size:1.7rem;font-weight:900}
+.modal-pts-remain{font-size:.78rem;color:var(--muted);padding-bottom:6px}
+.modal-btns{display:flex;gap:10px}
+.modal-btn{flex:1;border:none;border-radius:10px;padding:13px;font-size:.88rem;font-weight:700;cursor:pointer}
+.modal-btn-cancel{background:#f4f4f5;color:var(--ink)}
+.modal-btn-ok{background:var(--ink);color:#fff}
+.modal-btn-ok:disabled{opacity:.35;cursor:not-allowed}
+
+/* ── toast ────────────────────────────────── */
+.toast{position:fixed;bottom:calc(var(--tab-h)+14px);left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:10px 20px;border-radius:8px;font-size:.8rem;font-weight:600;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;z-index:99;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 </style>
 </head>
 <body>
 <header>
   <h1>Heliaris</h1>
-  <button class="logout" onclick="logout()">登出</button>
+  <div class="hbtns">
+    <button class="hbtn" onclick="logout()">
+      <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      登出
+    </button>
+  </div>
 </header>
-<main>
-  <div class="card">
-    <div class="card-label">我的帳戶</div>
-    <div class="name-row" id="name">—</div>
-    <div class="room-row" id="room">—</div>
-  </div>
 
-  <div class="card">
-    <div class="card-label">待取餐點</div>
-    <div id="pending-area"><div class="no-pending">目前沒有待取餐點</div></div>
-  </div>
-
-  <div class="card" style="display:flex;align-items:flex-end;justify-content:space-between">
-    <div>
-      <div class="card-label">我的積分</div>
-      <div class="points-big" id="pts">—</div>
-      <div class="points-label">點數越多代表你點外賣越少</div>
+<div class="pages">
+  <div class="page active" id="p-home">
+    <div class="section">
+      <div class="card">
+        <div class="card-label">
+          <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          帳戶資訊
+        </div>
+        <div class="name-row" id="name">—</div>
+        <div class="room-row" id="room">—</div>
+      </div>
+      <div class="pts-hero">
+        <div class="pts-hero-top">
+          <div>
+            <h2 id="pts-big">—</h2>
+            <p id="pts-room-label">宿舍積分</p>
+          </div>
+          <span class="pts-badge" id="pts-sync-badge">即時同步</span>
+        </div>
+        <button class="checkin-btn" onclick="doCheckin()">合作商家內用打卡 ＋ 積分</button>
+      </div>
+      <div class="card">
+        <div class="card-label">
+          <svg viewBox="0 0 24 24"><path d="M16 16h6v6h-6z"/><path d="M2 16h6v6H2z"/><path d="M9 2h6v6H9z"/><path d="M5 16V8h14v8"/><path d="M12 8v8"/></svg>
+          待取餐點
+        </div>
+        <div id="pending-area"><div class="no-pending">目前沒有待取餐點</div></div>
+      </div>
+      <div class="card">
+        <div class="card-label">
+          <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          本月外送排行（外送越少排越前）
+        </div>
+        <div id="rank-list"><div class="no-pending">載入中…</div></div>
+      </div>
     </div>
-    <div style="color:#a1a1aa">
-      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg>
+  </div>
+
+  <div class="page" id="p-spin">
+    <div class="section">
+      <div class="card">
+        <div class="card-label">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
+          幸運轉盤
+        </div>
+        <div class="spin-wrap">
+          <div class="wheel-outer">
+            <canvas id="wheel" width="250" height="250"></canvas>
+            <div id="wheel-pointer"></div>
+          </div>
+          <button class="spin-btn" id="spin-btn" onclick="spinWheel()">轉動（10 點）</button>
+          <div class="spin-result" id="spin-result"></div>
+          <div class="spin-note">每次轉動消耗 10 積分，獎品即時兌換 🎁</div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <div class="card" style="text-align:center">
-    <div class="card-label" style="justify-content:center">幸運轉盤（積分兌換獎勵）</div>
-    <div style="position:relative;display:inline-block;margin-bottom:14px">
-      <canvas id="wheel" width="220" height="220" style="border-radius:50%;border:5px solid #18181b;display:block"></canvas>
-      <div id="wheel-pointer" style="position:absolute;top:-8px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:9px solid transparent;border-right:9px solid transparent;border-top:18px solid #ef4444"></div>
+  <div class="page" id="p-store">
+    <div class="section">
+      <div class="store-pts-bar">
+        <div>
+          <h3 id="store-pts">—</h3>
+          <p id="store-room">宿舍積分</p>
+        </div>
+        <div style="font-size:2rem">🏪</div>
+      </div>
+      <div class="store-grid" id="store-grid"></div>
     </div>
-    <div><button class="open-btn" id="spin-btn" onclick="spinWheel()">開始轉盤</button></div>
-    <div id="spin-result" style="margin-top:12px;font-size:.95rem;font-weight:700;color:#18181b;min-height:24px"></div>
   </div>
 
-  <div class="card">
-    <div class="card-label">本月房間排行（外送最少得第一）</div>
-    <div id="rank-list"></div>
+  <div class="page" id="p-orders">
+    <div class="section">
+      <div class="card">
+        <div class="card-label">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          近期外送記錄
+        </div>
+        <div id="order-list"><div class="no-pending">尚無訂單記錄</div></div>
+      </div>
+    </div>
   </div>
+</div>
 
-  <div class="card">
-    <div class="card-label">近期訂單記錄</div>
-    <div id="order-list"></div>
+<nav class="tabs">
+  <button class="tab active" data-tab="p-home" onclick="switchTab(this)">
+    <svg viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    <span>首頁</span>
+  </button>
+  <button class="tab" data-tab="p-spin" onclick="switchTab(this)">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
+    <span>轉盤</span>
+  </button>
+  <button class="tab" data-tab="p-store" onclick="switchTab(this)">
+    <svg viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+    <span>積分商店</span>
+  </button>
+  <button class="tab" data-tab="p-orders" onclick="switchTab(this)">
+    <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+    <span>訂單</span>
+  </button>
+</nav>
+
+<div class="modal-overlay" id="redeem-modal" onclick="closeModal(event)">
+  <div class="modal-sheet">
+    <div class="modal-title" id="modal-title"></div>
+    <div class="modal-desc" id="modal-desc"></div>
+    <div class="modal-cost-row">
+      <div>
+        <div style="font-size:.72rem;color:var(--muted);margin-bottom:2px">所需積分</div>
+        <div class="modal-cost-big" id="modal-cost"></div>
+      </div>
+      <div class="modal-pts-remain" id="modal-remain"></div>
+    </div>
+    <div class="modal-btns">
+      <button class="modal-btn modal-btn-cancel" onclick="document.getElementById('redeem-modal').classList.remove('open')">取消</button>
+      <button class="modal-btn modal-btn-ok" id="modal-confirm" onclick="confirmRedeem()">確認兌換</button>
+    </div>
   </div>
-</main>
+</div>
+
+<div class="toast" id="toast"></div>
+
 <script>
+const STORE_ITEMS=[
+  {icon:'🅿️',name:'停車費折抵',desc:'宿舍停車場\n單次抵用 $30',cost:40},
+  {icon:'🎪',name:'社團會費折抵',desc:'任意社團\n學期會費折抵 $50',cost:60},
+  {icon:'🍔',name:'麥當勞折價券',desc:'任一品項\n85 折（限合作門市）',cost:35},
+  {icon:'☕',name:'星巴克折價券',desc:'中杯以上\n買一送一',cost:80},
+  {icon:'🤖',name:'校園AI點數 100',desc:'iAI 系統\n100 使用點數',cost:50},
+  {icon:'🤖',name:'校園AI點數 500',desc:'iAI 系統\n500 使用點數',cost:200},
+  {icon:'🧃',name:'50嵐折價券',desc:'任飲品\n第二杯半價',cost:25},
+  {icon:'⚡',name:'宿舍電費折抵',desc:'下期電費\n折抵 $20',cost:30},
+];
+let myRoom='',myPoints=0,pendingRedeem=null;
+
+function showToast(msg,dur=2500){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),dur);
+}
+
+function switchTab(btn){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(btn.dataset.tab).classList.add('active');
+  window.scrollTo(0,0);
+  if(btn.dataset.tab==='p-spin')drawWheel();
+}
+
 async function logout(){
   await fetch('/api/logout',{method:'POST'});
   location.href='/login';
 }
 
 async function openBox(){
-  document.getElementById('open-btn').disabled=true;
+  const btn=document.getElementById('open-btn');
+  if(btn)btn.disabled=true;
   const res=await fetch('/api/open_by_student',{method:'POST'});
   const d=await res.json();
-  if(!res.ok){alert(d.error);document.getElementById('open-btn').disabled=false;return;}
-  alert('開箱成功！請前往取餐');
+  if(!res.ok){showToast('❌ '+d.error);if(btn)btn.disabled=false;return;}
+  showToast('✅ 開箱成功！請前往取餐');
   load();
+}
+
+async function doCheckin(){
+  const res=await fetch('/api/checkin',{method:'POST'});
+  const d=await res.json();
+  if(!res.ok){showToast('❌ '+d.error);return;}
+  showToast('🎉 打卡成功！+'+d.added+' 點，宿舍共 '+d.total+' 點');
 }
 
 async function load(){
   const res=await fetch('/api/my-orders');
   if(res.status===401){location.href='/login';return;}
   const d=await res.json();
+  myRoom=d.room;
   document.getElementById('name').textContent=d.name;
-  document.getElementById('room').textContent=`宿舍：${d.room}`;
-  document.getElementById('pts').textContent=d.points;
-
+  document.getElementById('room').textContent='宿舍：'+d.room;
+  document.getElementById('store-room').textContent=d.room+' 宿舍積分';
+  updatePts(d.points);
   const pa=document.getElementById('pending-area');
   if(d.pending){
-    pa.innerHTML=`<div class="pending-box">
-      <div>
-        <div class="pending-info" style="display:flex;align-items:center;gap:6px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg> 餐點已送達，請前往取餐</div>
-        <div class="pending-merchant">${d.pending.merchant}</div>
-      </div>
-      <button class="open-btn" id="open-btn" onclick="openBox()">開箱</button>
-    </div>`;
-  } else {
-    pa.innerHTML='<div class="no-pending">目前沒有待取餐點</div>';
-  }
-
+    pa.innerHTML='<div class="pending-box"><div>'
+      +'<div class="pending-info">📦 餐點已送達，請前往取餐</div>'
+      +'<div class="pending-merchant">'+d.pending.merchant+'</div>'
+      +'</div><button class="open-btn" id="open-btn" onclick="openBox()">開箱</button></div>';
+  }else{pa.innerHTML='<div class="no-pending">目前沒有待取餐點</div>';}
   const ol=document.getElementById('order-list');
-  if(!d.orders.length){ol.innerHTML='<div class="no-pending">尚無訂單記錄</div>';return;}
-  ol.innerHTML=d.orders.map(o=>`<div class="order-row">
-    <div><div class="order-merchant">${o.merchant}</div><div class="order-date">${o.delivered_at||o.month}</div></div>
-    <span class="badge ${o.status==='delivered'?'badge-yellow':'badge-gray'}">${o.status==='delivered'?'待取':'已取'}</span>
-  </div>`).join('');
-
+  if(!d.orders.length){ol.innerHTML='<div class="no-pending">尚無訂單記錄</div>';}
+  else{
+    ol.innerHTML=d.orders.map(function(o){
+      return '<div class="order-row"><div><div class="order-merchant">'+o.merchant+'</div>'
+        +'<div class="order-date">'+(o.delivered_at||o.month)+'</div></div>'
+        +'<span class="badge '+(o.status==='delivered'?'badge-yellow':'badge-gray')+'">'
+        +(o.status==='delivered'?'待取':'已取')+'</span></div>';
+    }).join('');
+  }
   const rr=await fetch('/api/rankings');
-  const ranks=await rr.json();
-  const maxCnt=Math.max(...ranks.map(r=>r.count),1);
-  document.getElementById('rank-list').innerHTML=ranks.map((r,i)=>`<div class="rank-row">
-    <div class="rank-num ${i===0?'gold':''}">${i+1}</div>
-    <div class="rank-room">${r.room}</div>
-    <div class="rank-bar-wrap"><div class="rank-bar" style="width:${Math.round(r.count/maxCnt*100)}%"></div></div>
-    <div class="rank-cnt">${r.count} 單</div>
-  </div>`).join('');
+  if(rr.ok){
+    const ranks=await rr.json();
+    if(Array.isArray(ranks)&&ranks.length){
+      const mx=Math.max.apply(null,ranks.map(function(r){return r.count;}));
+      const M=[{bg:'#fef9c3',c:'#92400e',t:'🥇'},{bg:'#f0f0f0',c:'#52525b',t:'🥈'},
+               {bg:'#fde8d8',c:'#9a3412',t:'🥉'},{bg:'#f4f4f5',c:'#a1a1aa',t:'4'}];
+      document.getElementById('rank-list').innerHTML=ranks.map(function(r,i){
+        const m=M[i]||M[3];
+        return '<div class="rank-row">'
+          +'<div class="rank-medal" style="background:'+m.bg+';color:'+m.c+'">'+m.t+'</div>'
+          +'<div class="rank-room">'+r.room+'</div>'
+          +'<div class="rank-bar-wrap"><div class="rank-bar" style="width:'+Math.round(r.count/mx*100)+'%"></div></div>'
+          +'<div class="rank-cnt">'+r.count+'單</div></div>';
+      }).join('');
+    }
+  }
 }
 
-load();
-setInterval(load,10000);
+function updatePts(pts){
+  myPoints=pts;
+  document.getElementById('pts-big').textContent=pts;
+  document.getElementById('store-pts').textContent=pts;
+}
 
-// ── Spin wheel ──
-const PRIZES=['運費折抵 $30','運費折抵 $50','AI點數 50點','AI點數 100點','電費抵免 5元','電費抵免 10元','環保餐盒券','折扣券 85折'];
-const WCOLORS=['#18181b','#3f3f46','#52525b','#71717a','#a1a1aa','#d4d4d8','#e4e4e7','#f4f4f5'];
-let wDeg=0, wSpinning=false;
+function connectSSE(){
+  const es=new EventSource('/api/points-stream');
+  es.onmessage=function(e){
+    const pts=parseInt(e.data);
+    if(!isNaN(pts)){
+      updatePts(pts);
+      const b=document.getElementById('pts-sync-badge');
+      b.textContent='已同步 ✓';
+      setTimeout(function(){b.textContent='即時同步';},2000);
+    }
+  };
+  es.onerror=function(){es.close();setTimeout(connectSSE,5000);};
+}
 
-function drawWheel(rotDeg=0){
+function buildStore(){
+  document.getElementById('store-grid').innerHTML=STORE_ITEMS.map(function(item,i){
+    return '<div class="store-item" onclick="openRedeem('+i+')">'
+      +'<div class="store-icon">'+item.icon+'</div>'
+      +'<div class="store-name">'+item.name+'</div>'
+      +'<div class="store-desc">'+item.desc.replace('\n','<br>')+'</div>'
+      +'<div class="store-cost">'+item.cost+' 點</div>'
+      +'</div>';
+  }).join('');
+}
+
+function openRedeem(idx){
+  const item=STORE_ITEMS[idx];
+  pendingRedeem=item;
+  document.getElementById('modal-title').textContent=item.name;
+  document.getElementById('modal-desc').textContent=item.desc.replace('\n',' — ');
+  document.getElementById('modal-cost').textContent=item.cost+' 點';
+  document.getElementById('modal-remain').textContent='兌換後剩 '+(myPoints-item.cost)+' 點';
+  document.getElementById('modal-confirm').disabled=(myPoints<item.cost);
+  document.getElementById('redeem-modal').classList.add('open');
+}
+
+function closeModal(e){
+  if(e.target===document.getElementById('redeem-modal'))
+    document.getElementById('redeem-modal').classList.remove('open');
+}
+
+async function confirmRedeem(){
+  if(!pendingRedeem)return;
+  const res=await fetch('/api/redeem',{method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({cost:pendingRedeem.cost})});
+  const d=await res.json();
+  document.getElementById('redeem-modal').classList.remove('open');
+  showToast(d.ok?'🎁 兌換成功！剩餘 '+d.total+' 點':'❌ '+(d.error||'失敗'));
+  pendingRedeem=null;
+}
+
+const SPIN_COST=10;
+const PRIZES=[
+  {label:'停車費\n$20',bg:'#ef4444',fg:'#fff'},
+  {label:'AI點數\n50點',bg:'#f97316',fg:'#fff'},
+  {label:'咖啡券\n半價',bg:'#eab308',fg:'#fff'},
+  {label:'再試一次',bg:'#22c55e',fg:'#fff'},
+  {label:'飲料券\n$15',bg:'#06b6d4',fg:'#fff'},
+  {label:'AI點數\n100點',bg:'#6366f1',fg:'#fff'},
+  {label:'電費折抵\n$10',bg:'#a855f7',fg:'#fff'},
+  {label:'社團費\n$30',bg:'#ec4899',fg:'#fff'},
+];
+let wDeg=0,wSpinning=false;
+
+function drawWheel(deg){
+  if(deg===undefined)deg=wDeg;
   const canvas=document.getElementById('wheel');
   if(!canvas)return;
   const ctx=canvas.getContext('2d');
-  const n=PRIZES.length,cx=110,cy=110,r=104;
-  ctx.clearRect(0,0,220,220);
-  ctx.save();ctx.translate(cx,cy);ctx.rotate(rotDeg*Math.PI/180);ctx.translate(-cx,-cy);
-  PRIZES.forEach((p,i)=>{
-    const a1=(i/n)*2*Math.PI-Math.PI/2;
-    const a2=((i+1)/n)*2*Math.PI-Math.PI/2;
+  const n=PRIZES.length,cx=125,cy=125,r=117;
+  ctx.clearRect(0,0,250,250);
+  ctx.save();
+  ctx.translate(cx,cy);ctx.rotate(deg*Math.PI/180);ctx.translate(-cx,-cy);
+  for(var i=0;i<n;i++){
+    var p=PRIZES[i];
+    var a1=(i/n)*2*Math.PI-Math.PI/2;
+    var a2=((i+1)/n)*2*Math.PI-Math.PI/2;
     ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,a1,a2);ctx.closePath();
-    ctx.fillStyle=WCOLORS[i%WCOLORS.length];ctx.fill();
-    ctx.save();ctx.translate(cx,cy);ctx.rotate((a1+a2)/2);
-    ctx.textAlign='right';ctx.fillStyle=i%2===0?'#fff':'#18181b';
-    ctx.font='bold 9px system-ui';ctx.fillText(p.slice(0,8),r-6,3);
+    ctx.fillStyle=p.bg;ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,.4)';ctx.lineWidth=1.5;ctx.stroke();
+    ctx.save();
+    ctx.translate(cx,cy);ctx.rotate((a1+a2)/2+Math.PI/2);
+    ctx.textAlign='center';ctx.fillStyle=p.fg;ctx.font='bold 9.5px system-ui';
+    var lines=p.label.split('\n');
+    for(var li=0;li<lines.length;li++){
+      ctx.fillText(lines[li],0,r-20+(li-0.5)*13);
+    }
     ctx.restore();
-  });
-  ctx.beginPath();ctx.arc(cx,cy,16,0,2*Math.PI);ctx.fillStyle='#fff';ctx.fill();
+  }
+  ctx.beginPath();ctx.arc(cx,cy,22,0,2*Math.PI);ctx.fillStyle='#fff';ctx.fill();
+  ctx.beginPath();ctx.arc(cx,cy,15,0,2*Math.PI);ctx.fillStyle='#18181b';ctx.fill();
   ctx.restore();
 }
 
-function spinWheel(){
+async function spinWheel(){
   if(wSpinning)return;
+  if(myPoints<SPIN_COST){showToast('❌ 積分不足，需要 '+SPIN_COST+' 點');return;}
+  var res=await fetch('/api/redeem',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({cost:SPIN_COST})});
+  var d=await res.json();
+  if(!d.ok){showToast('❌ '+(d.error||'扣點失敗'));return;}
+  updatePts(d.total);
   wSpinning=true;
-  const btn=document.getElementById('spin-btn');
+  var btn=document.getElementById('spin-btn');
   btn.disabled=true;
   document.getElementById('spin-result').textContent='';
-  const extra=1800+Math.random()*360;
-  const target=wDeg+extra;
-  const duration=2200;
-  const start=performance.now();
-  const from=wDeg;
+  var extra=1440+360+Math.random()*360;
+  var from=wDeg,duration=3000,start=performance.now();
   function animate(now){
-    const t=Math.min((now-start)/duration,1);
-    const ease=t<.5?4*t*t*t:(t-1)*(2*t-2)*(2*t-2)+1;
-    const cur=from+extra*ease;
-    drawWheel(cur);
+    var t=Math.min((now-start)/duration,1);
+    var ease=1-Math.pow(1-t,4);
+    drawWheel(from+extra*ease);
     if(t<1){requestAnimationFrame(animate);}
     else{
-      wDeg=target%360;
-      const n=PRIZES.length;
-      const idx=Math.floor(((360-wDeg)%360)/360*n)%n;
-      document.getElementById('spin-result').textContent='獲得：'+PRIZES[idx];
+      wDeg=(from+extra)%360;
+      var idx=Math.floor(((360-wDeg)%360)/360*PRIZES.length)%PRIZES.length;
+      document.getElementById('spin-result').textContent='🎉 '+PRIZES[idx].label.replace('\n',' ');
       wSpinning=false;btn.disabled=false;
     }
   }
   requestAnimationFrame(animate);
 }
 
-drawWheel();
+load();
+buildStore();
+connectSSE();
 </script>
 </body>
 </html>

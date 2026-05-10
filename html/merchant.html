@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Heliaris 商家後台</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#f4f4f5;font-family:system-ui,-apple-system,sans-serif;min-height:100vh;padding-bottom:72px}
+
+/* ── header ── */
+header{background:#18181b;color:#fff;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+header h1{font-size:.9rem;font-weight:700;letter-spacing:.06em}
+.hbtns{display:flex;gap:8px}
+.hbtn{font-size:.75rem;background:none;border:1px solid #3f3f46;color:#a1a1aa;border-radius:6px;padding:5px 10px;cursor:pointer;display:flex;align-items:center;gap:4px}
+.hbtn:hover{color:#fff;border-color:#71717a}
+.hbtn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* ── tab bar ── */
+.tab-bar{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #e4e4e7;display:flex;z-index:20;height:64px}
+.tab-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:#a1a1aa;transition:color .15s;border:none;background:none;padding:8px 0}
+.tab-item.active{color:#18181b}
+.tab-item svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tab-item span{font-size:.64rem;font-weight:600;letter-spacing:.03em}
+
+/* ── sections ── */
+.section{display:none;max-width:520px;margin:0 auto;padding:18px 14px;flex-direction:column;gap:14px}
+.section.active{display:flex}
+
+/* ── card ── */
+.card{background:#fff;border:1px solid #e4e4e7;border-radius:12px;padding:20px}
+.card-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#a1a1aa;margin-bottom:14px;display:flex;align-items:center;gap:6px}
+.card-label svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* ── store hero ── */
+.store-hero{background:#18181b;color:#fff;border-radius:12px;padding:22px 20px}
+.store-name{font-size:1.5rem;font-weight:900;letter-spacing:-.01em}
+.store-meta{font-size:.75rem;opacity:.55;margin-top:6px;display:flex;gap:10px}
+.store-id-box{margin-top:14px;background:rgba(255,255,255,.1);border-radius:8px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.store-id-label{font-size:.65rem;opacity:.6}
+.store-id-val{font-size:.82rem;font-weight:700;font-family:ui-monospace,monospace;letter-spacing:.04em}
+.copy-id-btn{font-size:.68rem;border:1px solid rgba(255,255,255,.3);background:none;color:#fff;border-radius:5px;padding:3px 8px;cursor:pointer;white-space:nowrap}
+.copy-id-btn:hover{background:rgba(255,255,255,.15)}
+
+/* ── upload zone ── */
+.upload-zone{border:2px dashed #e4e4e7;border-radius:10px;padding:28px 20px;text-align:center;cursor:pointer;transition:border-color .15s,background .15s}
+.upload-zone:hover,.upload-zone.drag{border-color:#71717a;background:#fafafa}
+.upload-icon{font-size:2rem;margin-bottom:8px}
+.upload-title{font-size:.88rem;font-weight:700;color:#18181b}
+.upload-sub{font-size:.72rem;color:#a1a1aa;margin-top:4px}
+#file-input{display:none}
+
+/* ── parsing state ── */
+.parsing-banner{background:#f0f9ff;border:1px solid #bae6fd;border-radius:10px;padding:14px 16px;display:none;align-items:center;gap:12px}
+.parsing-banner.show{display:flex}
+.spinner{width:18px;height:18px;border:2px solid #bae6fd;border-top-color:#0284c7;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+.parsing-text{font-size:.82rem;color:#0369a1;font-weight:600}
+
+/* ── preview banner ── */
+.preview-banner{background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:14px 16px;display:none;align-items:center;justify-content:space-between;gap:12px}
+.preview-banner.show{display:flex}
+.preview-text{font-size:.82rem;color:#15803d;font-weight:600}
+.preview-actions{display:flex;gap:8px;flex-shrink:0}
+.preview-actions button{font-size:.72rem;border-radius:6px;padding:5px 10px;cursor:pointer;font-weight:600;border:none}
+.btn-cancel-ocr{background:#f4f4f5;color:#18181b}
+.btn-save-ocr{background:#15803d;color:#fff}
+
+/* ── menu item rows ── */
+.category-group{margin-bottom:6px}
+.cat-heading{font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#a1a1aa;padding:10px 0 6px;border-bottom:1px solid #f4f4f5;margin-bottom:0}
+.menu-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f4f4f5}
+.menu-row:last-child{border:none}
+.menu-avail{flex-shrink:0}
+.menu-avail input[type=checkbox]{width:16px;height:16px;accent-color:#18181b;cursor:pointer}
+.menu-info{flex:1;min-width:0}
+.menu-name{font-size:.88rem;font-weight:700;color:#18181b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.menu-desc{font-size:.7rem;color:#71717a;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.menu-cat-badge{font-size:.6rem;background:#f4f4f5;color:#a1a1aa;border-radius:4px;padding:1px 6px;margin-left:4px;vertical-align:middle}
+.menu-price{font-size:.88rem;font-weight:700;color:#18181b;flex-shrink:0;min-width:44px;text-align:right}
+.menu-del{flex-shrink:0;background:none;border:none;color:#e4e4e7;cursor:pointer;padding:4px;display:flex;align-items:center}
+.menu-del:hover{color:#ef4444}
+.menu-del svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
+.no-menu{color:#a1a1aa;font-size:.82rem;text-align:center;padding:24px 0}
+
+/* ── add item form ── */
+.add-form{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid #f4f4f5}
+.add-form input,.add-form select{border:1px solid #e4e4e7;border-radius:7px;padding:8px 10px;font-size:.8rem;font-family:inherit;color:#18181b;outline:none;width:100%}
+.add-form input:focus,.add-form select:focus{border-color:#71717a}
+.add-form .full{grid-column:1/-1}
+.add-item-btn{width:100%;background:#f4f4f5;color:#18181b;border:1px solid #e4e4e7;border-radius:7px;padding:9px;font-size:.8rem;font-weight:600;cursor:pointer;margin-top:4px;grid-column:1/-1}
+.add-item-btn:hover{border-color:#71717a}
+
+/* ── save bar ── */
+.save-bar{background:#18181b;color:#fff;border-radius:10px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.save-info{font-size:.78rem;opacity:.7}
+.save-btn{background:#fff;color:#18181b;border:none;border-radius:7px;padding:9px 18px;font-size:.82rem;font-weight:700;cursor:pointer}
+.save-btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* ── info card ── */
+.info-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #f4f4f5;font-size:.83rem}
+.info-row:last-child{border:none}
+.info-key{color:#71717a}
+.info-val{font-weight:600;color:#18181b}
+
+/* ── toast ── */
+.toast{position:fixed;bottom:78px;left:50%;transform:translateX(-50%) translateY(20px);background:#18181b;color:#fff;padding:10px 20px;border-radius:8px;font-size:.8rem;font-weight:600;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;z-index:99;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<header>
+  <h1>Heliaris 商家</h1>
+  <div class="hbtns">
+    <button class="hbtn" onclick="logout()">
+      <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      登出
+    </button>
+  </div>
+</header>
+
+<!-- ── 菜單管理 ── -->
+<div class="section active" id="sec-menu">
+  <div class="store-hero" id="store-hero">
+    <div class="store-name" id="hero-name">載入中…</div>
+    <div class="store-meta">
+      <span id="hero-cat"></span>
+    </div>
+    <div class="store-id-box">
+      <div>
+        <div class="store-id-label">登入帳號</div>
+        <div class="store-id-val" id="hero-id">—</div>
+      </div>
+      <button class="copy-id-btn" onclick="copyAccountId()">複製</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">
+      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      上傳菜單圖片（OCR 自動辨識）
+    </div>
+    <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()"
+         ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
+      <div class="upload-icon">📄</div>
+      <div class="upload-title">點擊或拖曳菜單圖片</div>
+      <div class="upload-sub">支援 JPG、PNG、WebP，最大 10MB</div>
+    </div>
+    <input type="file" id="file-input" accept="image/jpeg,image/png,image/webp" onchange="onFileSelect(event)">
+
+    <div class="parsing-banner" id="parsing-banner" style="margin-top:12px">
+      <div class="spinner"></div>
+      <div class="parsing-text">Gemma AI 正在視覺擷提取菜單內容，請稍候…</div>
+    </div>
+
+    <div class="preview-banner" id="preview-banner" style="margin-top:12px">
+      <div class="preview-text" id="preview-text"></div>
+      <div class="preview-actions">
+        <button class="btn-cancel-ocr" onclick="cancelOcr()">捨棄</button>
+        <button class="btn-save-ocr" onclick="applyOcr()">套用並儲存</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">
+      <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="12" y2="16"/></svg>
+      目前菜單
+    </div>
+    <div id="menu-list"><div class="no-menu">尚未上傳菜單</div></div>
+
+    <div class="add-form" id="add-form">
+      <select id="add-cat" class="full">
+        <option value="">選擇分類</option>
+        <option>主餐</option><option>副餐</option><option>飲料</option>
+        <option>甜點</option><option>套餐</option><option>其他</option>
+      </select>
+      <input type="text"   id="add-name"  placeholder="品項名稱">
+      <input type="number" id="add-price" placeholder="價格" min="0">
+      <input type="text"   id="add-desc"  placeholder="描述（選填）" class="full">
+      <button class="add-item-btn" onclick="addItem()">＋ 新增品項</button>
+    </div>
+  </div>
+
+  <div class="save-bar">
+    <div class="save-info" id="item-count">0 個品項</div>
+    <button class="save-btn" id="save-btn" onclick="saveMenu()">儲存菜單</button>
+  </div>
+</div>
+
+<!-- ── 店家資訊 ── -->
+<div class="section" id="sec-info">
+  <div class="card">
+    <div class="card-label">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      店家基本資訊
+    </div>
+    <div id="info-rows"><div class="no-menu">載入中…</div></div>
+  </div>
+  <div class="card">
+    <div class="card-label">
+      <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      合作說明
+    </div>
+    <div style="font-size:.82rem;color:#71717a;line-height:1.8">
+      <p>• 學生外送越少，宿舍積分越高（鼓勵內用）</p>
+      <p>• 積分可在學生端兌換折扣，為您帶來更多回頭客</p>
+      <p>• 菜單更新後即時生效，學生可即時瀏覽</p>
+    </div>
+  </div>
+</div>
+
+<nav class="tab-bar">
+  <button class="tab-item active" onclick="switchTab('menu',0)">
+    <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/></svg>
+    <span>菜單管理</span>
+  </button>
+  <button class="tab-item" onclick="switchTab('info',1)">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    <span>店家資訊</span>
+  </button>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let _profile = null;   // full profile from server
+let _menu    = [];     // current working menu
+let _ocrItems= [];     // pending OCR result
+
+// ── init ──────────────────────────────────────────────────
+async function load(){
+  try{
+    const res = await fetch('/api/merchant/profile');
+    if(!res.ok){ location.href='/login'; return; }
+    _profile = await res.json();
+    _menu    = _profile.menu || [];
+    renderHero();
+    renderMenu();
+    renderInfo();
+  } catch(e){ showToast('載入失敗，請重新整理'); }
+}
+
+function renderHero(){
+  document.getElementById('hero-name').textContent = _profile.store_name;
+  document.getElementById('hero-cat').textContent  = _profile.category || '餐飲';
+  document.getElementById('hero-id').textContent   = _profile.account_id;
+}
+
+function renderInfo(){
+  const rows = [
+    ['店家名稱', _profile.store_name],
+    ['類別',     _profile.category   || '—'],
+    ['簡介',     _profile.description|| '—'],
+    ['登入帳號', _profile.account_id],
+  ];
+  document.getElementById('info-rows').innerHTML = rows.map(([k,v])=>
+    `<div class="info-row"><span class="info-key">${k}</span><span class="info-val">${v}</span></div>`
+  ).join('');
+}
+
+// ── menu render ───────────────────────────────────────────
+function renderMenu(items){
+  const list = items || _menu;
+  const el = document.getElementById('menu-list');
+  if(!list.length){ el.innerHTML='<div class="no-menu">尚未新增任何品項</div>'; updateCount(); return; }
+
+  // Group by category
+  const groups = {};
+  list.forEach(item=>{ (groups[item.category]=groups[item.category]||[]).push(item); });
+
+  el.innerHTML = Object.entries(groups).map(([cat, items])=>`
+    <div class="category-group">
+      <div class="cat-heading">${cat}</div>
+      ${items.map(item=>`
+        <div class="menu-row" data-id="${item.id}">
+          <div class="menu-avail">
+            <input type="checkbox" ${item.available?'checked':''} onchange="toggleAvail(${item.id},this.checked)" title="上架">
+          </div>
+          <div class="menu-info">
+            <div class="menu-name">${esc(item.name)}</div>
+            ${item.desc?`<div class="menu-desc">${esc(item.desc)}</div>`:''}
+          </div>
+          <div class="menu-price">$${item.price}</div>
+          <button class="menu-del" onclick="deleteItem(${item.id})" title="刪除">
+            <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>`).join('')}
+    </div>`).join('');
+  updateCount();
+}
+
+function updateCount(){
+  const avail = _menu.filter(i=>i.available).length;
+  document.getElementById('item-count').textContent = `${_menu.length} 個品項（${avail} 個上架中）`;
+}
+
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ── menu actions ──────────────────────────────────────────
+function toggleAvail(id, val){
+  const item = _menu.find(i=>i.id===id);
+  if(item) item.available = val;
+  updateCount();
+}
+
+function deleteItem(id){
+  _menu = _menu.filter(i=>i.id!==id);
+  renderMenu();
+}
+
+function addItem(){
+  const cat   = document.getElementById('add-cat').value || '其他';
+  const name  = document.getElementById('add-name').value.trim();
+  const price = parseInt(document.getElementById('add-price').value)||0;
+  const desc  = document.getElementById('add-desc').value.trim();
+  if(!name){ showToast('請輸入品項名稱'); return; }
+  const maxId = _menu.reduce((m,i)=>Math.max(m,i.id),0);
+  _menu.push({id: maxId+1, category:cat, name, price, desc, available:true});
+  document.getElementById('add-name').value  = '';
+  document.getElementById('add-price').value = '';
+  document.getElementById('add-desc').value  = '';
+  renderMenu();
+  showToast('已新增：'+name);
+}
+
+async function saveMenu(){
+  const btn = document.getElementById('save-btn');
+  btn.disabled=true; btn.textContent='儲存中…';
+  try{
+    const res = await fetch('/api/merchant/menu',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({items: _menu})
+    });
+    const d = await res.json();
+    if(d.ok){ showToast('✅ 菜單已儲存'); }
+    else{ showToast('❌ 儲存失敗'); }
+  } catch(e){ showToast('❌ 網路錯誤'); }
+  finally{ btn.disabled=false; btn.textContent='儲存菜單'; }
+}
+
+// ── OCR upload ────────────────────────────────────────────
+function onDragOver(e){ e.preventDefault(); document.getElementById('upload-zone').classList.add('drag'); }
+function onDragLeave(){ document.getElementById('upload-zone').classList.remove('drag'); }
+function onDrop(e){
+  e.preventDefault();
+  onDragLeave();
+  const file = e.dataTransfer.files[0];
+  if(file) uploadFile(file);
+}
+function onFileSelect(e){
+  const file = e.target.files[0];
+  if(file) uploadFile(file);
+  e.target.value='';
+}
+
+async function uploadFile(file){
+  if(file.size > 10*1024*1024){ showToast('❌ 圖片大小不能超過 10MB'); return; }
+  document.getElementById('parsing-banner').classList.add('show');
+  document.getElementById('preview-banner').classList.remove('show');
+  document.getElementById('upload-zone').style.pointerEvents='none';
+
+  const form = new FormData();
+  form.append('image', file);
+  try{
+    const res = await fetch('/api/merchant/upload-menu',{method:'POST', body:form});
+    const d   = await res.json();
+    if(!res.ok){ showToast('❌ '+(d.error||'OCR 失敗')); return; }
+    _ocrItems = d.items;
+    const n = _ocrItems.length;
+    document.getElementById('preview-text').textContent = `辨識完成！找到 ${n} 個品項，確認後套用`;
+    document.getElementById('preview-banner').classList.add('show');
+    renderMenu(_ocrItems);  // preview
+    showToast(`🤖 Gemma 識別了 ${n} 個品項`);
+  } catch(e){ showToast('❌ 上傳失敗：'+e.message); }
+  finally{
+    document.getElementById('parsing-banner').classList.remove('show');
+    document.getElementById('upload-zone').style.pointerEvents='';
+  }
+}
+
+function applyOcr(){
+  _menu = _ocrItems.map((item,i)=>({...item, id:i+1}));
+  _ocrItems = [];
+  document.getElementById('preview-banner').classList.remove('show');
+  renderMenu();
+  saveMenu();
+}
+
+function cancelOcr(){
+  _ocrItems = [];
+  document.getElementById('preview-banner').classList.remove('show');
+  renderMenu();
+}
+
+// ── utils ─────────────────────────────────────────────────
+function copyAccountId(){
+  navigator.clipboard.writeText(_profile.account_id)
+    .then(()=>showToast('已複製帳號'));
+}
+
+function switchTab(name,idx){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab-item').forEach((t,i)=>t.classList.toggle('active',i===idx));
+  document.getElementById('sec-'+name).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+async function logout(){
+  await fetch('/api/logout',{method:'POST'});
+  location.href='/login';
+}
+
+function showToast(msg,dur=2500){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),dur);
+}
+
+load();
+</script>
+</body>
+</html>

@@ -7,83 +7,151 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:#f4f4f5;font-family:system-ui,-apple-system,sans-serif;min-height:100vh;padding-bottom:72px}
+
+/* ── header ─────────────────────────────────────────── */
 header{background:#18181b;color:#fff;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
 header h1{font-size:.9rem;font-weight:700;letter-spacing:.06em}
 .hbtns{display:flex;gap:8px}
 .hbtn{font-size:.75rem;background:none;border:1px solid #3f3f46;color:#a1a1aa;border-radius:6px;padding:5px 10px;cursor:pointer;display:flex;align-items:center;gap:4px}
 .hbtn:hover{color:#fff;border-color:#71717a}
 .hbtn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* ── tab bar ─────────────────────────────────────────── */
 .tab-bar{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #e4e4e7;display:flex;z-index:20;height:64px}
 .tab-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:#a1a1aa;transition:color .15s;border:none;background:none;padding:8px 0}
 .tab-item.active{color:#18181b}
 .tab-item svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .tab-item span{font-size:.64rem;font-weight:600;letter-spacing:.03em}
+
+/* ── sections ────────────────────────────────────────── */
 .section{display:none;max-width:520px;margin:0 auto;padding:18px 14px;flex-direction:column;gap:14px}
 .section.active{display:flex}
 .card{background:#fff;border:1px solid #e4e4e7;border-radius:12px;padding:20px}
 .card-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#a1a1aa;margin-bottom:14px;display:flex;align-items:center;gap:6px}
 .card-label svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.month-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
-.mtab{background:#f4f4f5;border:none;border-radius:6px;padding:5px 12px;font-size:.76rem;font-weight:600;color:#71717a;cursor:pointer}
-.mtab.active{background:#18181b;color:#fff}
+
+/* ── month picker (scrollable pill carousel) ─────────── */
+.month-picker-wrap{position:relative;margin-bottom:18px}
+.month-picker-wrap::after{content:'';position:absolute;right:0;top:0;bottom:4px;width:48px;background:linear-gradient(90deg,transparent,#fff);pointer-events:none;border-radius:0 10px 10px 0}
+.month-picker{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:4px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.month-picker::-webkit-scrollbar{display:none}
+.mpill{scroll-snap-align:start;flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px solid #e4e4e7;border-radius:14px;padding:10px 16px;cursor:pointer;background:#fff;min-width:66px;transition:all .2s ease;user-select:none}
+.mpill:hover{border-color:#71717a;background:#fafafa}
+.mpill .mp-year{font-size:.58rem;color:#a1a1aa;line-height:1;margin-bottom:3px;font-weight:500}
+.mpill .mp-mon{font-size:1.2rem;font-weight:900;line-height:1;color:#18181b}
+.mpill .mp-unit{font-size:.58rem;color:#71717a;margin-top:2px}
+.mpill.active{background:#18181b;border-color:#18181b;transform:scale(1.06);box-shadow:0 4px 12px rgba(0,0,0,.18)}
+.mpill.active .mp-year{color:#71717a}
+.mpill.active .mp-mon,.mpill.active .mp-unit{color:#fff}
+
+/* ── bar chart ───────────────────────────────────────── */
 .bar-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #f4f4f5}
 .bar-row:last-child{border:none}
 .bar-room{width:38px;font-size:.8rem;font-weight:700;color:#18181b}
 .bar-wrap{flex:1;background:#f4f4f5;border-radius:4px;height:10px;overflow:hidden}
 .bar{height:100%;border-radius:4px;background:#18181b;transition:width .5s}
 .bar-cnt{width:32px;text-align:right;font-size:.78rem;color:#71717a}
-.co2-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f4f4f5;font-size:.82rem}
+
+/* ── co2 ─────────────────────────────────────────────── */
+.co2-row{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid #f4f4f5}
 .co2-row:last-child{border:none}
-.co2-val{font-weight:700;color:#dc2626}
-.rank-card{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #f4f4f5}
+.co2-room{width:38px;font-size:.8rem;font-weight:700;color:#18181b}
+.co2-bar-wrap{flex:1;background:#f4f4f5;border-radius:4px;height:8px;overflow:hidden}
+.co2-bar{height:100%;border-radius:4px;transition:width .5s}
+.co2-val{min-width:58px;text-align:right;font-size:.78rem;font-weight:700}
+.co2-low .co2-bar{background:#22c55e} .co2-low .co2-val{color:#16a34a}
+.co2-mid .co2-bar{background:#f59e0b} .co2-mid .co2-val{color:#d97706}
+.co2-high .co2-bar{background:#ef4444} .co2-high .co2-val{color:#dc2626}
+
+/* ── rank section ────────────────────────────────────── */
+.rank-month-tabs{display:flex;gap:6px;margin-bottom:16px;background:#f4f4f5;border-radius:10px;padding:4px}
+.rmt{flex:1;text-align:center;border:none;background:none;border-radius:7px;padding:8px 4px;font-size:.76rem;font-weight:600;color:#71717a;cursor:pointer;transition:all .15s;white-space:nowrap}
+.rmt.active{background:#fff;color:#18181b;box-shadow:0 1px 4px rgba(0,0,0,.1)}
+.rank-card{display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid #f4f4f5}
 .rank-card:last-child{border:none}
-.rank-pos{width:28px;height:28px;border-radius:50%;background:#f4f4f5;display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:800;color:#71717a;flex-shrink:0}
-.rank-pos.p1{background:#fef3c7;color:#92400e}
-.rank-pos.p2{background:#e4e4e7;color:#52525b}
-.rank-pos.p3{background:#fde68a;color:#a16207}
+.rank-medal{width:54px;height:54px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.rank-medal img{width:54px;height:54px;object-fit:contain}
+.medal-fallback{width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.15rem;font-weight:900;border:3px solid;display:none}
+.mf1{background:#fef3c7;border-color:#f59e0b;color:#92400e}
+.mf2{background:#f1f5f9;border-color:#94a3b8;color:#475569}
+.mf3{background:#fde68a;border-color:#d97706;color:#a16207}
+.mf4{background:#f0fdf4;border-color:#22c55e;color:#166534}
+.mf5{background:#f5f3ff;border-color:#8b5cf6;color:#5b21b6}
 .rank-info{flex:1}
-.rank-name{font-size:.9rem;font-weight:700}
-.rank-sub{font-size:.72rem;color:#71717a;margin-top:2px}
-.rank-tag{font-size:.68rem;font-weight:700;background:#18181b;color:#fff;border-radius:4px;padding:2px 6px;margin-left:6px}
-.merchant-list{display:flex;flex-direction:column}
-.merchant-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f4f4f5;font-size:.85rem}
+.rank-name{font-size:.95rem;font-weight:700;display:flex;align-items:center;flex-wrap:wrap;gap:5px}
+.rank-sub{font-size:.74rem;color:#71717a;margin-top:3px}
+.rank-tag{font-size:.64rem;font-weight:700;background:#18181b;color:#fff;border-radius:4px;padding:2px 6px}
+.rank-eco{font-size:.64rem;font-weight:700;background:#dcfce7;color:#166534;border-radius:4px;padding:2px 6px}
+
+/* ── merchant section ────────────────────────────────── */
+.merchant-row{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid #f4f4f5}
 .merchant-row:last-child{border:none}
-.merchant-name{font-weight:600}
-.cat-badge{background:#f4f4f5;border-radius:5px;padding:2px 7px;font-size:.68rem;font-weight:600;color:#52525b}
+.merchant-left{display:flex;align-items:center;gap:8px;min-width:0}
+.merchant-name{font-weight:600;font-size:.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cat-badge{background:#f4f4f5;border-radius:5px;padding:2px 7px;font-size:.66rem;font-weight:600;color:#52525b;flex-shrink:0}
+.menu-btn{font-size:.72rem;font-weight:600;border:1.5px solid #e4e4e7;border-radius:7px;padding:5px 11px;background:#fff;color:#18181b;cursor:pointer;white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:4px}
+.menu-btn:hover{background:#f4f4f5;border-color:#a1a1aa}
+.menu-btn svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2.5}
 .add-form{display:flex;flex-direction:column;gap:10px;margin-top:14px;padding-top:14px;border-top:1px solid #f4f4f5}
 .add-form input,.add-form select{border:1.5px solid #e4e4e7;border-radius:8px;padding:10px 12px;font-size:.85rem;width:100%;outline:none;font-family:inherit}
 .add-form input:focus,.add-form select:focus{border-color:#18181b}
 .add-btn{background:#18181b;color:#fff;border:none;border-radius:8px;padding:11px;font-size:.85rem;font-weight:600;cursor:pointer}
 .add-btn:hover{background:#3f3f46}
-.student-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.s-chip{background:#f4f4f5;border-radius:8px;padding:8px 10px}
-.s-chip-name{font-size:.82rem;font-weight:600}
-.s-chip-id{font-size:.68rem;color:#a1a1aa;margin-top:2px}
-.s-chip-room{font-size:.68rem;color:#71717a}
+
+/* ── menu modal ──────────────────────────────────────── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:50;align-items:flex-end;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal-box{background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:520px;max-height:82vh;overflow:hidden;display:flex;flex-direction:column;animation:slideUp .25s ease}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-header{padding:18px 20px 14px;border-bottom:1px solid #e4e4e7;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.modal-title{font-size:1.05rem;font-weight:700}
+.modal-cat{font-size:.68rem;background:#f4f4f5;border-radius:5px;padding:2px 8px;color:#52525b;margin-left:8px;font-weight:600}
+.modal-close{background:none;border:none;font-size:1.3rem;cursor:pointer;color:#71717a;padding:4px;line-height:1;border-radius:6px}
+.modal-close:hover{background:#f4f4f5;color:#18181b}
+.modal-body{overflow-y:auto;padding:4px 20px 28px;flex:1}
+.menu-item{padding:13px 0;border-bottom:1px solid #f4f4f5}
+.menu-item:last-child{border:none}
+.menu-item-top{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.menu-item-name{font-size:.9rem;font-weight:600;flex:1}
+.menu-item-price{font-size:.95rem;font-weight:700;color:#18181b;flex-shrink:0}
+.menu-item-meta{display:flex;align-items:center;gap:5px;margin-top:6px;flex-wrap:wrap}
+.co2-badge{font-size:.63rem;font-weight:700;border-radius:5px;padding:2px 7px;flex-shrink:0}
+.co2-badge.low{background:#dcfce7;color:#166534}
+.co2-badge.mid{background:#fef9c3;color:#854d0e}
+.co2-badge.high{background:#fee2e2;color:#991b1b}
+.addon-tag{font-size:.63rem;background:#f4f4f5;border-radius:4px;padding:2px 6px;color:#52525b}
+
+/* ── student list ─────────────────────────────────────── */
+.student-room-group{margin-bottom:14px}
+.student-room-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#a1a1aa;margin-bottom:6px;padding:0 2px}
+.s-row{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:#f9f9fa;border-radius:9px;margin-bottom:5px}
+.s-row:last-child{margin-bottom:0}
+.s-name{font-size:.88rem;font-weight:600}
+.s-id{font-size:.7rem;color:#a1a1aa;margin-top:2px}
+.s-room-badge{font-size:.65rem;background:#18181b;color:#fff;border-radius:5px;padding:2px 8px;font-weight:600;flex-shrink:0}
 </style>
 </head>
 <body>
+
 <header>
   <h1>Heliaris 管理</h1>
   <div class="hbtns">
-    <button class="hbtn" onclick="location.href='/admin'">
-      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-      電腦版
-    </button>
     <button class="hbtn" onclick="logout()">
       <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
       登出
     </button>
   </div>
 </header>
-
+<!-- ── 統計 ───────────────────────────────────────────── -->
 <div class="section active" id="sec-stats">
   <div class="card">
     <div class="card-label">
       <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
       外送統計
     </div>
-    <div class="month-tabs" id="month-tabs"></div>
+    <div class="month-picker-wrap">
+      <div class="month-picker" id="month-picker"></div>
+    </div>
     <div id="bar-chart"></div>
   </div>
   <div class="card">
@@ -92,27 +160,30 @@ header h1{font-size:.9rem;font-weight:700;letter-spacing:.06em}
       碳排放估算
     </div>
     <div id="co2-list"></div>
-    <div style="font-size:.7rem;color:#a1a1aa;margin-top:10px">每筆外送約產生 0.5 kg CO&#8322;（含包裝＋運送）</div>
+    <div style="font-size:.66rem;color:#a1a1aa;margin-top:12px;line-height:1.6">依各商家菜單平均碳排計算，含食材生產、包裝與運送。<br>🟢 &lt;5 kg　🟡 5–15 kg　🔴 &gt;15 kg</div>
   </div>
 </div>
 
+<!-- ── 排行 ───────────────────────────────────────────── -->
 <div class="section" id="sec-rank">
   <div class="card">
     <div class="card-label">
       <svg viewBox="0 0 24 24"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg>
-      本月排行榜
+      環保排行榜
     </div>
+    <div class="rank-month-tabs" id="rank-month-tabs"></div>
     <div id="rank-list"></div>
   </div>
 </div>
 
+<!-- ── 店家 ───────────────────────────────────────────── -->
 <div class="section" id="sec-merchants">
   <div class="card">
     <div class="card-label">
       <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
       合作店家
     </div>
-    <div class="merchant-list" id="merchant-list"></div>
+    <div id="merchant-list"></div>
     <div class="add-form">
       <input id="inp-merchant" placeholder="店家名稱" type="text">
       <select id="inp-cat">
@@ -125,16 +196,18 @@ header h1{font-size:.9rem;font-weight:700;letter-spacing:.06em}
   </div>
 </div>
 
+<!-- ── 學生 ───────────────────────────────────────────── -->
 <div class="section" id="sec-students">
   <div class="card">
     <div class="card-label">
       <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
       學生名冊
     </div>
-    <div class="student-grid" id="student-grid"></div>
+    <div id="student-list"></div>
   </div>
 </div>
 
+<!-- ── tab bar ────────────────────────────────────────── -->
 <nav class="tab-bar">
   <button class="tab-item active" onclick="switchTab('stats',0)">
     <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
@@ -154,35 +227,235 @@ header h1{font-size:.9rem;font-weight:700;letter-spacing:.06em}
   </button>
 </nav>
 
+<!-- ── merchant menu modal ────────────────────────────── -->
+<div class="modal-overlay" id="menu-modal" onclick="closeMenuModal()">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div style="display:flex;align-items:center;min-width:0">
+        <span class="modal-title" id="modal-merchant-name"></span>
+        <span class="modal-cat" id="modal-merchant-cat"></span>
+      </div>
+      <button class="modal-close" onclick="closeMenuModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-menu-list"></div>
+  </div>
+</div>
+
 <script>
+// ── 登出 ──────────────────────────────────────────────
 async function logout(){await fetch('/api/logout',{method:'POST'});location.href='/login';}
 
-let allStats=[], months=[], curMonth='';
-
-function switchTab(name, idx){
+// ── Tab 切換 ──────────────────────────────────────────
+function switchTab(name,idx){
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.tab-item').forEach((t,i)=>t.classList.toggle('active',i===idx));
   document.getElementById('sec-'+name).classList.add('active');
 }
 
+// ── 商家菜單與碳排資料 ────────────────────────────────
+// 碳排來源：食材生產(LCA)+包裝+平均外送距離2km估算，單位 gCO₂e/份
+const MENU_DATA = {
+  '麥當勞':{category:'速食',co2_avg:1200,items:[
+    {name:'大麥克',price:105,co2:2540,addons:['加大套餐 +$30','去番茄']},
+    {name:'麥辣雞腿堡',price:89,co2:1380,addons:['加辣','不加辣']},
+    {name:'麥脆雞腿堡',price:85,co2:1200,addons:['不加生菜']},
+    {name:'麥香魚',price:69,co2:680,addons:['不加美乃滋']},
+    {name:'薯條（中）',price:55,co2:290,addons:['加鹽','少鹽']},
+    {name:'麥克玉米杯',price:45,co2:180,addons:[]},
+    {name:'可樂（中）',price:45,co2:170,addons:['去冰','少冰','正常冰']},
+  ]},
+  '肯德基':{category:'速食',co2_avg:1100,items:[
+    {name:'招牌雞腿堡',price:99,co2:1380,addons:['加辣','不加辣','加起司 +$20']},
+    {name:'黃金起司雞腿堡',price:89,co2:1250,addons:['加辣','不加辣']},
+    {name:'炸雞（2塊）',price:115,co2:1050,addons:['辣味','原味','蜂蜜口味']},
+    {name:'培根蛋沙拉堡',price:79,co2:920,addons:['不加培根']},
+    {name:'薯條（中）',price:59,co2:290,addons:[]},
+    {name:'玉米',price:39,co2:120,addons:['加奶油','不加奶油']},
+  ]},
+  '摩斯漢堡':{category:'速食',co2_avg:900,items:[
+    {name:'摩斯漢堡（牛）',price:75,co2:1800,addons:['不加洋蔥']},
+    {name:'燒肉珍珠堡',price:65,co2:950,addons:['加辣醬','不加醬']},
+    {name:'海洋珍珠堡',price:69,co2:580,addons:['不加美乃滋']},
+    {name:'薑燒豬肉堡',price:69,co2:760,addons:['加辣']},
+    {name:'薯條',price:49,co2:290,addons:[]},
+    {name:'玉米濃湯',price:45,co2:200,addons:[]},
+  ]},
+  '爭鮮壽司':{category:'日式',co2_avg:650,items:[
+    {name:'鮭魚握壽司（2貫）',price:59,co2:580,addons:['加哇沙米','不加哇沙米']},
+    {name:'鮪魚握壽司（2貫）',price:55,co2:620,addons:['加哇沙米']},
+    {name:'蝦握壽司（2貫）',price:49,co2:480,addons:[]},
+    {name:'玉子握壽司（2貫）',price:35,co2:210,addons:[]},
+    {name:'鰻魚飯',price:99,co2:820,addons:['加辣味噌']},
+    {name:'味噌湯',price:35,co2:120,addons:['加豆腐']},
+  ]},
+  '鬍鬚張':{category:'台式',co2_avg:550,items:[
+    {name:'滷肉飯（大）',price:65,co2:680,addons:['加蛋 +$15','不加香菜']},
+    {name:'排骨飯',price:120,co2:980,addons:['加辣','不加辣']},
+    {name:'爌肉飯',price:99,co2:850,addons:['加辣']},
+    {name:'蘿蔔湯',price:35,co2:90,addons:[]},
+    {name:'貢丸湯',price:35,co2:180,addons:[]},
+    {name:'豬血糕',price:25,co2:150,addons:['加花生粉','加醬油膏']},
+  ]},
+  '85度C':{category:'飲料/甜點',co2_avg:380,items:[
+    {name:'海鹽咖啡（大）',price:75,co2:420,addons:['去冰','少冰','正常冰','熱']},
+    {name:'拿鐵（大）',price:70,co2:380,addons:['去冰','微冰','熱','半糖','少糖','無糖']},
+    {name:'抹茶拿鐵（大）',price:75,co2:350,addons:['去冰','少冰','熱','半糖']},
+    {name:'起司蛋糕',price:65,co2:520,addons:[]},
+    {name:'可頌',price:45,co2:280,addons:[]},
+    {name:'波蘿麵包',price:35,co2:210,addons:[]},
+  ]},
+  '星巴克':{category:'咖啡',co2_avg:420,items:[
+    {name:'拿鐵（大杯）',price:155,co2:540,addons:['去冰','少冰','正常冰','熱','少糖','無糖','燕麥奶 +$30']},
+    {name:'美式（大杯）',price:135,co2:180,addons:['去冰','熱','少糖']},
+    {name:'焦糖瑪奇朵（大）',price:165,co2:580,addons:['去冰','熱','少焦糖']},
+    {name:'星冰樂（大）',price:185,co2:650,addons:['少糖','加巧克力粉 +$15']},
+    {name:'卡布奇諾（大）',price:145,co2:490,addons:['少奶泡','熱']},
+  ]},
+  '丹堤咖啡':{category:'咖啡',co2_avg:350,items:[
+    {name:'美式咖啡（大）',price:65,co2:160,addons:['去冰','少冰','熱']},
+    {name:'拿鐵（大）',price:80,co2:380,addons:['去冰','熱','半糖','無糖']},
+    {name:'卡布奇諾（大）',price:80,co2:420,addons:['去冰','熱']},
+    {name:'起司蛋糕',price:55,co2:480,addons:[]},
+    {name:'鬆餅',price:65,co2:390,addons:['加奶油','加楓糖 +$10']},
+  ]},
+  '50嵐':{category:'飲料',co2_avg:310,items:[
+    {name:'四季春茶（大）',price:35,co2:120,addons:['去冰','少冰','正常冰','熱','無糖','少糖','半糖','正常糖']},
+    {name:'珍珠奶茶（大）',price:55,co2:380,addons:['去冰','少冰','正常冰','無糖','少糖','半糖']},
+    {name:'波霸奶茶（大）',price:60,co2:410,addons:['去冰','少冰','無糖','少糖']},
+    {name:'布丁奶茶（大）',price:60,co2:420,addons:['去冰','少冰']},
+    {name:'烏龍茶（大）',price:35,co2:90,addons:['去冰','少冰','熱','無糖']},
+  ]},
+  '清心福全':{category:'飲料',co2_avg:290,items:[
+    {name:'珍珠奶茶（大）',price:45,co2:360,addons:['去冰','少冰','正常冰','無糖','少糖','半糖','正常糖']},
+    {name:'茉莉綠茶（大）',price:25,co2:80,addons:['去冰','少冰','熱','無糖','少糖']},
+    {name:'仙草凍奶茶（大）',price:45,co2:310,addons:['去冰','少冰','少糖']},
+    {name:'多多綠（大）',price:40,co2:290,addons:['去冰','少冰']},
+    {name:'波霸奶茶（大）',price:50,co2:390,addons:['去冰','少冰','少糖']},
+  ]},
+};
+
+function co2Class(g){return g<500?'low':g<1200?'mid':'high';}
+function co2Label(g){return g<1000?g+'g CO₂e':(g/1000).toFixed(1)+'kg CO₂e';}
+
+// ── 統計 ─────────────────────────────────────────────
+let allStats=[], roomMerchantStats=[], months=[], curMonth='';
+
+function renderMonthPicker(){
+  const el=document.getElementById('month-picker');
+  el.innerHTML=months.map(m=>{
+    const [y,mo]=m.split('-');
+    return `<div class="mpill${m===curMonth?' active':''}" onclick="selectMonth('${m}')">
+      <div class="mp-year">${y}</div>
+      <div class="mp-mon">${parseInt(mo)}</div>
+      <div class="mp-unit">月</div>
+    </div>`;
+  }).join('');
+  const active=el.querySelector('.mpill.active');
+  if(active) active.scrollIntoView({block:'nearest',inline:'center',behavior:'smooth'});
+}
+
 function renderChart(){
   const monthData=allStats.filter(r=>r.month===curMonth);
   const maxCnt=Math.max(...monthData.map(r=>r.count),1);
-  document.getElementById('bar-chart').innerHTML=monthData.map(r=>`<div class="bar-row">
-    <div class="bar-room">${r.room}</div>
-    <div class="bar-wrap"><div class="bar" style="width:${Math.round(r.count/maxCnt*100)}%"></div></div>
-    <div class="bar-cnt">${r.count}</div>
-  </div>`).join('');
-  document.getElementById('co2-list').innerHTML=monthData.map(r=>`<div class="co2-row">
-    <span>${r.room}</span>
-    <span class="co2-val">${(r.count*0.5).toFixed(1)} kg</span>
-  </div>`).join('');
+  document.getElementById('bar-chart').innerHTML=monthData.length
+    ?monthData.map(r=>`<div class="bar-row">
+        <div class="bar-room">${r.room}</div>
+        <div class="bar-wrap"><div class="bar" style="width:${Math.round(r.count/maxCnt*100)}%"></div></div>
+        <div class="bar-cnt">${r.count}</div>
+      </div>`).join('')
+    :'<div style="font-size:.82rem;color:#a1a1aa;padding:8px 0">本月尚無資料</div>';
+
+  // 使用商家平均碳排計算各房間CO₂
+  const rms=roomMerchantStats.filter(r=>r.month===curMonth);
+  const roomCo2={};
+  rms.forEach(r=>{
+    const avg=(MENU_DATA[r.merchant]||{co2_avg:800}).co2_avg;
+    roomCo2[r.room]=(roomCo2[r.room]||0)+r.count*avg;
+  });
+  monthData.forEach(r=>{if(!roomCo2[r.room]) roomCo2[r.room]=r.count*800;});
+
+  const maxCo2=Math.max(...monthData.map(r=>roomCo2[r.room]||0),1);
+  document.getElementById('co2-list').innerHTML=monthData.length
+    ?monthData.map(r=>{
+        const g=roomCo2[r.room]||0;
+        const cls=g<5000?'low':g<15000?'mid':'high';
+        const pct=Math.round(g/maxCo2*100);
+        return `<div class="co2-row co2-${cls}">
+          <div class="co2-room">${r.room}</div>
+          <div class="co2-bar-wrap"><div class="co2-bar" style="width:${pct}%"></div></div>
+          <div class="co2-val">${(g/1000).toFixed(1)} kg</div>
+        </div>`;
+      }).join('')
+    :'<div style="font-size:.82rem;color:#a1a1aa;padding:8px 0">本月尚無資料</div>';
 }
 
 function selectMonth(m){
   curMonth=m;
-  document.querySelectorAll('.mtab').forEach(t=>t.classList.toggle('active',t.textContent===m));
+  renderMonthPicker();
   renderChart();
+}
+
+// ── 排行 ─────────────────────────────────────────────
+let rankMonths=[], curRankMonth='', allRankings={};
+
+function renderRankMonthTabs(){
+  document.getElementById('rank-month-tabs').innerHTML=rankMonths.map(m=>{
+    const [y,mo]=m.split('-');
+    return `<button class="rmt${m===curRankMonth?' active':''}" onclick="selectRankMonth('${m}')">${y}/${parseInt(mo)}月</button>`;
+  }).join('');
+}
+
+async function selectRankMonth(m){
+  curRankMonth=m;
+  renderRankMonthTabs();
+  if(!allRankings[m]){
+    const res=await fetch(`/api/rankings?month=${m}`);
+    allRankings[m]=await res.json();
+  }
+  renderRankings(allRankings[m]);
+}
+
+function medalEl(i){
+  const fb=['mf1','mf2','mf3','mf4','mf5'][i]||'mf5';
+  return `<div class="rank-medal">
+    <img src="/image/no${i+1}.png"
+         alt="${i+1}"
+         onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+    <div class="medal-fallback ${fb}">${i+1}</div>
+  </div>`;
+}
+
+function renderRankings(rankings){
+  document.getElementById('rank-list').innerHTML=rankings.length
+    ?rankings.map((r,i)=>`<div class="rank-card">
+        ${medalEl(i)}
+        <div class="rank-info">
+          <div class="rank-name">
+            ${r.room}
+            ${i===0?'<span class="rank-tag">環保冠軍</span><span class="rank-eco">🌿 最少外送</span>':''}
+          </div>
+          <div class="rank-sub">本月外送 ${r.count} 單</div>
+        </div>
+      </div>`).join('')
+    :'<div style="font-size:.82rem;color:#a1a1aa;padding:8px 0">本月尚無資料</div>';
+}
+
+// ── 店家 ─────────────────────────────────────────────
+async function loadMerchants(){
+  const res=await fetch('/api/merchants');
+  const items=await res.json();
+  document.getElementById('merchant-list').innerHTML=items.length
+    ?items.map(m=>`<div class="merchant-row">
+        <div class="merchant-left">
+          <span class="merchant-name">${m.name}</span>
+          <span class="cat-badge">${m.category||'未分類'}</span>
+        </div>
+        <button class="menu-btn" onclick="openMenuModal('${m.name}')">
+          <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg>
+          菜單
+        </button>
+      </div>`).join('')
+    :'<div style="font-size:.82rem;color:#a1a1aa;padding:8px 0">尚無店家</div>';
 }
 
 async function addMerchant(){
@@ -194,46 +467,91 @@ async function addMerchant(){
   else{const d=await res.json();alert(d.error||'新增失敗');}
 }
 
-async function loadMerchants(){
-  const res=await fetch('/api/merchants');
-  const items=await res.json();
-  document.getElementById('merchant-list').innerHTML=items.length
-    ?items.map(m=>`<div class="merchant-row">
-        <span class="merchant-name">${m.name}</span>
-        <span class="cat-badge">${m.category||'未分類'}</span>
-      </div>`).join('')
-    :'<div style="font-size:.82rem;color:#a1a1aa;padding:8px 0">尚無店家</div>';
+// ── 菜單 Modal ───────────────────────────────────────
+function openMenuModal(name){
+  const data=MENU_DATA[name];
+  document.getElementById('modal-merchant-name').textContent=name;
+  document.getElementById('modal-merchant-cat').textContent=data?data.category:'';
+  if(!data||!data.items||!data.items.length){
+    document.getElementById('modal-menu-list').innerHTML=
+      '<div style="font-size:.85rem;color:#a1a1aa;padding:24px 0;text-align:center">暫無菜單資料</div>';
+  } else {
+    document.getElementById('modal-menu-list').innerHTML=data.items.map(item=>{
+      const cls=co2Class(item.co2);
+      const addons=(item.addons&&item.addons.length)
+        ?item.addons.map(a=>`<span class="addon-tag">${a}</span>`).join(''):'';
+      return `<div class="menu-item">
+        <div class="menu-item-top">
+          <span class="menu-item-name">${item.name}</span>
+          <span class="menu-item-price">$${item.price}</span>
+        </div>
+        <div class="menu-item-meta">
+          <span class="co2-badge ${cls}" title="碳排放量估算">🌱 ${co2Label(item.co2)}</span>
+          ${addons}
+        </div>
+      </div>`;
+    }).join('');
+  }
+  document.getElementById('menu-modal').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeMenuModal(){
+  document.getElementById('menu-modal').classList.remove('open');
+  document.body.style.overflow='';
 }
 
+// ── 學生（list 版）──────────────────────────────────
+function renderStudents(students){
+  const grouped={};
+  students.forEach(s=>(grouped[s.room]=grouped[s.room]||[]).push(s));
+  document.getElementById('student-list').innerHTML=
+    Object.entries(grouped).map(([room,list])=>
+      `<div class="student-room-group">
+        <div class="student-room-label">${room}</div>
+        ${list.map(s=>`<div class="s-row">
+          <div>
+            <div class="s-name">${s.name}</div>
+            <div class="s-id">${s.student_id}</div>
+          </div>
+          <span class="s-room-badge">${room}</span>
+        </div>`).join('')}
+      </div>`
+    ).join('');
+}
+
+// ── 初始載入 ─────────────────────────────────────────
 async function load(){
-  const [sr,rr,stuR]=await Promise.all([
-    fetch('/api/room-stats'),fetch('/api/rankings'),fetch('/api/students')
+  const meRes=await fetch('/api/me');
+  if(meRes.status===401){location.href='/login';return;}
+  const me=await meRes.json();
+
+
+  const [sr, rmsr, stuR]=await Promise.all([
+    fetch('/api/room-stats'),
+    fetch('/api/room-merchant-stats'),
+    fetch('/api/students'),
   ]);
   if(sr.status===401){location.href='/login';return;}
+
   allStats=await sr.json();
-  const rankings=await rr.json();
+  roomMerchantStats=rmsr.ok?await rmsr.json():[];
   const students=await stuR.json();
 
   months=[...new Set(allStats.map(r=>r.month))].sort().reverse();
-  curMonth=curMonth||months[0]||'';
-  document.getElementById('month-tabs').innerHTML=months.map(m=>`<button class="mtab ${m===curMonth?'active':''}" onclick="selectMonth('${m}')">${m}</button>`).join('');
+  curMonth=months[0]||'';
+  renderMonthPicker();
   renderChart();
 
-  const posClass=['p1','p2','p3'];
-  document.getElementById('rank-list').innerHTML=rankings.map((r,i)=>`<div class="rank-card">
-    <div class="rank-pos ${posClass[i]||''}">${i+1}</div>
-    <div class="rank-info">
-      <div class="rank-name">${r.room}${i===0?'<span class="rank-tag">冠軍</span>':''}</div>
-      <div class="rank-sub">本月外送 ${r.count} 單</div>
-    </div>
-  </div>`).join('');
+  rankMonths=months.slice(0,3);
+  curRankMonth=rankMonths[0]||'';
+  renderRankMonthTabs();
+  if(curRankMonth){
+    const rr=await fetch(`/api/rankings?month=${curRankMonth}`);
+    allRankings[curRankMonth]=await rr.json();
+    renderRankings(allRankings[curRankMonth]);
+  }
 
-  document.getElementById('student-grid').innerHTML=students.map(s=>`<div class="s-chip">
-    <div class="s-chip-name">${s.name}</div>
-    <div class="s-chip-id">${s.student_id}</div>
-    <div class="s-chip-room">${s.room}</div>
-  </div>`).join('');
-
+  renderStudents(students);
   loadMerchants();
 }
 

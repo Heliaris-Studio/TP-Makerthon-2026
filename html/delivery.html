@@ -78,6 +78,11 @@ async function deliver(sid){
 }
 
 async function load(){
+  const meRes=await fetch('/api/me');
+  if(meRes.status===401){location.href='/login';return;}
+  const me=await meRes.json();
+
+
   const res=await fetch('/api/delivery/rooms');
   if(res.status===401){location.href='/login';return;}
   const rooms=await res.json();

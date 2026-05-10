@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>商家申請合作 — Heliaris</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#f4f4f5;--card:#fff;--border:#e4e4e7;--ink:#18181b;--muted:#71717a;--dim:#a1a1aa}
+html,body{min-height:100%;background:var(--bg);font-family:system-ui,-apple-system,sans-serif}
+
+header{background:var(--ink);color:#fff;padding:14px 20px;position:sticky;top:0;z-index:10}
+header h1{font-size:.9rem;font-weight:700;letter-spacing:.06em}
+header p{font-size:.7rem;color:#a1a1aa;margin-top:2px}
+
+.wrap{max-width:480px;margin:0 auto;padding:24px 16px 48px}
+
+.step-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--dim);margin-bottom:20px}
+
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px}
+
+.field{margin-bottom:18px}
+.field:last-child{margin-bottom:0}
+.field label{display:block;font-size:.75rem;font-weight:700;color:var(--ink);margin-bottom:6px}
+.field input,.field select,.field textarea{
+  width:100%;border:1px solid var(--border);border-radius:8px;
+  padding:10px 12px;font-size:.88rem;font-family:inherit;
+  background:#fff;color:var(--ink);outline:none;
+  transition:border-color .15s
+}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:#71717a}
+.field textarea{resize:vertical;min-height:72px;line-height:1.5}
+.field .hint{font-size:.68rem;color:var(--dim);margin-top:5px}
+
+.submit-btn{
+  width:100%;background:var(--ink);color:#fff;border:none;
+  border-radius:10px;padding:14px;font-size:.92rem;font-weight:700;
+  cursor:pointer;margin-top:20px;transition:opacity .15s
+}
+.submit-btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* ── Success state ── */
+.success-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:28px 24px;display:none;text-align:center}
+.success-icon{font-size:2.8rem;margin-bottom:12px}
+.success-title{font-size:1.1rem;font-weight:800;color:var(--ink);margin-bottom:6px}
+.success-sub{font-size:.8rem;color:var(--muted);margin-bottom:24px;line-height:1.6}
+.id-box{background:#f4f4f5;border-radius:10px;padding:16px;margin-bottom:20px}
+.id-label{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);margin-bottom:6px}
+.id-value{font-size:1.3rem;font-weight:900;letter-spacing:.06em;color:var(--ink);font-family:ui-monospace,monospace}
+.copy-btn{
+  width:100%;background:#f4f4f5;color:var(--ink);border:1px solid var(--border);
+  border-radius:8px;padding:10px;font-size:.82rem;font-weight:600;cursor:pointer;
+  margin-bottom:10px
+}
+.copy-btn.copied{background:#dcfce7;border-color:#86efac;color:#166534}
+.login-btn{
+  width:100%;background:var(--ink);color:#fff;border:none;
+  border-radius:8px;padding:11px;font-size:.85rem;font-weight:700;cursor:pointer
+}
+
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--ink);color:#fff;padding:10px 20px;border-radius:8px;
+  font-size:.8rem;font-weight:600;opacity:0;transition:opacity .25s,transform .25s;
+  pointer-events:none;z-index:99;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+.login-link{text-align:center;margin-top:18px;font-size:.78rem;color:var(--muted)}
+.login-link a{color:var(--ink);font-weight:600;text-decoration:none}
+</style>
+</head>
+<body>
+<header>
+  <h1>Heliaris</h1>
+  <p>商家合作申請</p>
+</header>
+
+<div class="wrap">
+  <div class="step-label">填寫基本資料</div>
+
+  <!-- 表單 -->
+  <div class="card" id="form-card">
+    <div class="field">
+      <label>店家名稱 <span style="color:#ef4444">*</span></label>
+      <input type="text" id="f-name" placeholder="例：85度C 大安店" maxlength="40">
+    </div>
+    <div class="field">
+      <label>餐飲類別</label>
+      <select id="f-cat">
+        <option value="">請選擇類別</option>
+        <option>速食</option>
+        <option>日式</option>
+        <option>台式</option>
+        <option>咖啡</option>
+        <option>飲料</option>
+        <option>甜點</option>
+        <option>健康輕食</option>
+        <option>其他</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>店家簡介</label>
+      <textarea id="f-desc" placeholder="簡短介紹你的店（選填）" maxlength="200"></textarea>
+      <div class="hint">最多 200 字</div>
+    </div>
+    <button class="submit-btn" id="submit-btn" onclick="submitRegister()">申請合作</button>
+  </div>
+
+  <!-- 成功畫面 -->
+  <div class="success-card" id="success-card">
+    <div class="success-icon">🎉</div>
+    <div class="success-title">申請成功！</div>
+    <div class="success-sub">
+      請儲存下方帳號 ID，之後用它登入商家後台<br>
+      上傳菜單完成後即可讓學生點餐
+    </div>
+    <div class="id-box">
+      <div class="id-label">你的登入帳號</div>
+      <div class="id-value" id="result-id"></div>
+    </div>
+    <button class="copy-btn" id="copy-btn" onclick="copyId()">複製帳號</button>
+    <button class="login-btn" onclick="goLogin()">前往登入 →</button>
+  </div>
+
+  <div class="login-link">已有帳號？<a href="/login">直接登入</a></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let _accountId = '';
+
+function showToast(msg, dur=2200){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), dur);
+}
+
+async function submitRegister(){
+  const name = document.getElementById('f-name').value.trim();
+  const cat  = document.getElementById('f-cat').value;
+  const desc = document.getElementById('f-desc').value.trim();
+  if(!name){ showToast('請輸入店家名稱'); return; }
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true; btn.textContent = '申請中…';
+  try{
+    const res = await fetch('/api/merchant/register', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({store_name:name, category:cat, description:desc})
+    });
+    const d = await res.json();
+    if(!res.ok){ showToast('❌ '+(d.error||'申請失敗')); btn.disabled=false; btn.textContent='申請合作'; return; }
+    _accountId = d.account_id;
+    document.getElementById('result-id').textContent = _accountId;
+    document.getElementById('form-card').style.display = 'none';
+    document.getElementById('success-card').style.display = 'block';
+  } catch(e){
+    showToast('❌ 網路錯誤，請重試');
+    btn.disabled=false; btn.textContent='申請合作';
+  }
+}
+
+function copyId(){
+  navigator.clipboard.writeText(_accountId).then(()=>{
+    const b=document.getElementById('copy-btn');
+    b.textContent='✓ 已複製'; b.classList.add('copied');
+    setTimeout(()=>{ b.textContent='複製帳號'; b.classList.remove('copied'); }, 2000);
+  });
+}
+
+function goLogin(){
+  location.href='/login';
+}
+</script>
+</body>
+</html>
