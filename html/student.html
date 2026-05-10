@@ -6,42 +6,38 @@
 <title>Heliaris 學生</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#f4f4f5;--card:#fff;--border:#e4e4e7;--ink:#18181b;--muted:#71717a;--dim:#a1a1aa;--tab-h:64px}
-html{height:100%}
-body{background:var(--bg);font-family:system-ui,-apple-system,sans-serif;min-height:100%;padding-bottom:calc(var(--tab-h) + 20px)}
+body{background:#f4f4f5;font-family:system-ui,-apple-system,sans-serif;min-height:100vh;padding-bottom:72px}
 
-/* ── header ──────────────────────────────── */
-header{background:var(--ink);color:#fff;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+/* ── header ── */
+header{background:#18181b;color:#fff;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
 header h1{font-size:.9rem;font-weight:700;letter-spacing:.06em}
 .hbtns{display:flex;gap:8px}
 .hbtn{font-size:.75rem;background:none;border:1px solid #3f3f46;color:#a1a1aa;border-radius:6px;padding:5px 10px;cursor:pointer;display:flex;align-items:center;gap:4px}
 .hbtn:hover{color:#fff;border-color:#71717a}
 .hbtn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 
-/* ── pages / sections ──────────────────────── */
-.pages{}
-.page{display:none}
-.page.active{display:block}
-.section{max-width:520px;margin:0 auto;padding:18px 14px;display:flex;flex-direction:column;gap:14px}
+/* ── sections ── */
+.section{display:none;max-width:520px;margin:0 auto;padding:18px 14px;flex-direction:column;gap:14px}
+.section.active{display:flex}
 
-/* ── tab bar ──────────────────────────────── */
-nav.tabs{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--border);display:flex;z-index:20;height:var(--tab-h)}
-.tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:var(--dim);transition:color .15s;border:none;background:none;padding:8px 0}
-.tab.active{color:var(--ink)}
-.tab svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.tab span{font-size:.64rem;font-weight:600;letter-spacing:.03em}
+/* ── tab bar ── */
+.tab-bar{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #e4e4e7;display:flex;z-index:20;height:64px}
+.tab-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:#a1a1aa;transition:color .15s;border:none;background:none;padding:8px 0}
+.tab-item.active{color:#18181b}
+.tab-item svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tab-item span{font-size:.64rem;font-weight:600;letter-spacing:.03em}
 
-/* ── card ─────────────────────────────────── */
-.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px}
-.card-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);margin-bottom:14px;display:flex;align-items:center;gap:6px}
+/* ── card ── */
+.card{background:#fff;border:1px solid #e4e4e7;border-radius:12px;padding:20px}
+.card-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#a1a1aa;margin-bottom:14px;display:flex;align-items:center;gap:6px}
 .card-label svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 
-/* ── account info ────────────────────────── */
-.name-row{font-size:1.1rem;font-weight:700;color:var(--ink)}
-.room-row{font-size:.8rem;color:var(--muted);margin-top:4px}
+/* ── account info ── */
+.name-row{font-size:1.1rem;font-weight:700;color:#18181b}
+.room-row{font-size:.8rem;color:#71717a;margin-top:4px}
 
-/* ── points hero ─────────────────────────── */
-.pts-hero{background:var(--ink);color:#fff;border-radius:12px;padding:22px 20px;display:flex;flex-direction:column;gap:16px}
+/* ── points hero ── */
+.pts-hero{background:#18181b;color:#fff;border-radius:12px;padding:22px 20px;display:flex;flex-direction:column;gap:16px}
 .pts-hero-top{display:flex;align-items:flex-start;justify-content:space-between}
 .pts-hero-top h2{font-size:2.6rem;font-weight:900;line-height:1;letter-spacing:-.02em}
 .pts-hero-top p{font-size:.72rem;opacity:.55;margin-top:6px;font-weight:500}
@@ -49,79 +45,136 @@ nav.tabs{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px s
 .checkin-btn{background:rgba(255,255,255,.12);color:#fff;border:1.5px solid rgba(255,255,255,.25);border-radius:10px;padding:12px 16px;font-size:.82rem;font-weight:700;cursor:pointer;text-align:center;width:100%}
 .checkin-btn:active{background:rgba(255,255,255,.2)}
 
-/* ── pending ──────────────────────────────── */
+/* ── active order status ── */
+.status-pending{background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:14px;display:flex;align-items:center;gap:12px}
+.status-pending .sp-icon{font-size:1.4rem;flex-shrink:0}
+.status-pending .sp-info{font-size:.84rem;font-weight:600;color:#1e40af}
+.status-pending .sp-sub{font-size:.72rem;color:#3b82f6;margin-top:2px;font-weight:400}
+.status-delivering{background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:14px;display:flex;align-items:center;gap:12px}
+.status-delivering .sp-icon{font-size:1.4rem;flex-shrink:0}
+.status-delivering .sp-info{font-size:.84rem;font-weight:600;color:#166534}
+.status-delivering .sp-sub{font-size:.72rem;color:#22c55e;margin-top:2px;font-weight:400}
 .pending-box{background:#fef9c3;border:1px solid #fde68a;border-radius:10px;padding:14px;display:flex;align-items:center;justify-content:space-between;gap:12px}
 .pending-info{font-size:.86rem;font-weight:600;color:#854d0e}
 .pending-merchant{font-size:.74rem;color:#92400e;margin-top:2px}
-.no-pending{color:var(--dim);font-size:.82rem;text-align:center;padding:8px 0}
-.open-btn{background:var(--ink);color:#fff;border:none;border-radius:8px;padding:10px 16px;font-size:.8rem;font-weight:600;cursor:pointer;white-space:nowrap}
+.pending-compartment{font-size:.72rem;color:#78350f;margin-top:4px;font-weight:700}
+.no-pending{color:#a1a1aa;font-size:.82rem;text-align:center;padding:8px 0}
+.open-btn{background:#18181b;color:#fff;border:none;border-radius:8px;padding:10px 16px;font-size:.8rem;font-weight:600;cursor:pointer;white-space:nowrap}
 .open-btn:disabled{opacity:.35;cursor:not-allowed}
 
-/* ── rank rows (admin style) ────────────────── */
+/* ── rank rows ── */
 .rank-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #f4f4f5}
 .rank-row:last-child{border:none}
 .rank-medal{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.78rem;flex-shrink:0;font-weight:700}
-.rank-room{font-size:.86rem;font-weight:700;flex:1;color:var(--ink)}
+.rank-room{font-size:.86rem;font-weight:700;flex:1;color:#18181b}
 .rank-bar-wrap{flex:2;background:#f4f4f5;border-radius:4px;height:7px;overflow:hidden}
-.rank-bar{height:100%;border-radius:4px;background:var(--ink);transition:width .7s cubic-bezier(.4,0,.2,1)}
-.rank-cnt{font-size:.75rem;color:var(--muted);width:38px;text-align:right}
+.rank-bar{height:100%;border-radius:4px;background:#18181b;transition:width .7s cubic-bezier(.4,0,.2,1)}
+.rank-cnt{font-size:.75rem;color:#71717a;width:38px;text-align:right}
 
-/* ── order rows ───────────────────────────── */
+/* ── order rows ── */
 .order-row{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid #f4f4f5;font-size:.82rem;gap:12px}
 .order-row:last-child{border:none}
 .order-merchant{font-weight:600}
-.order-date{color:var(--dim);font-size:.7rem;margin-top:3px}
+.order-date{color:#a1a1aa;font-size:.7rem;margin-top:3px}
 .badge{padding:2px 8px;border-radius:5px;font-size:.66rem;font-weight:700;white-space:nowrap}
 .badge-yellow{background:#fef9c3;color:#92400e}
-.badge-gray{background:#f4f4f5;color:var(--muted)}
+.badge-blue{background:#dbeafe;color:#1e40af}
+.badge-green{background:#dcfce7;color:#166534}
+.badge-gray{background:#f4f4f5;color:#71717a}
 
-/* ── spin wheel ──────────────────────────── */
+/* ── ordering: merchant list ── */
+#order-page-content{display:flex;flex-direction:column;gap:12px}
+.merchant-card{background:#fff;border:1px solid #e4e4e7;border-radius:12px;padding:16px;cursor:pointer;transition:border-color .15s,transform .1s;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.merchant-card:hover{border-color:#a1a1aa}
+.merchant-card:active{transform:scale(.98)}
+.mc-left{min-width:0}
+.mc-name{font-size:1rem;font-weight:700;color:#18181b}
+.mc-meta{font-size:.72rem;color:#71717a;margin-top:4px;display:flex;gap:8px}
+.mc-cat{background:#f4f4f5;border-radius:5px;padding:1px 7px;font-size:.66rem;font-weight:600;color:#52525b}
+.mc-arrow{color:#a1a1aa;flex-shrink:0}
+.mc-arrow svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2}
+.order-has-active{background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:16px;text-align:center}
+.order-has-active .oha-title{font-size:.9rem;font-weight:700;color:#1e40af;margin-bottom:4px}
+.order-has-active .oha-sub{font-size:.78rem;color:#3b82f6}
+
+/* ── menu modal ── */
+.menu-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:50;align-items:flex-end;justify-content:center}
+.menu-modal.open{display:flex}
+.menu-sheet{background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:520px;max-height:85vh;overflow:hidden;display:flex;flex-direction:column;animation:slideUp .25s ease}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.menu-header{padding:18px 20px 14px;border-bottom:1px solid #e4e4e7;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.menu-header-left{min-width:0}
+.mh-name{font-size:1.05rem;font-weight:700}
+.mh-cat{font-size:.68rem;background:#f4f4f5;border-radius:5px;padding:2px 8px;color:#52525b;font-weight:600;margin-left:8px}
+.menu-close{background:none;border:none;font-size:1.3rem;cursor:pointer;color:#71717a;padding:4px;line-height:1;border-radius:6px}
+.menu-close:hover{background:#f4f4f5;color:#18181b}
+.menu-body{overflow-y:auto;padding:4px 20px 0;flex:1}
+.menu-cat-group{margin-bottom:8px}
+.menu-cat-title{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#a1a1aa;padding:10px 0 6px;border-bottom:1px solid #f4f4f5}
+.mi-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid #f4f4f5;gap:10px}
+.mi-row:last-child{border:none}
+.mi-info{flex:1;min-width:0}
+.mi-name{font-size:.88rem;font-weight:600;color:#18181b}
+.mi-desc{font-size:.7rem;color:#71717a;margin-top:2px}
+.mi-price{font-size:.88rem;font-weight:700;color:#18181b;margin-right:10px;flex-shrink:0}
+.mi-qty{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.mi-qty button{width:28px;height:28px;border-radius:50%;border:1.5px solid #e4e4e7;background:#fff;font-size:1rem;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#18181b}
+.mi-qty button:hover{background:#f4f4f5;border-color:#a1a1aa}
+.mi-qty-num{font-size:.85rem;font-weight:700;min-width:18px;text-align:center}
+.menu-footer{padding:14px 20px 20px;border-top:1px solid #e4e4e7;flex-shrink:0}
+.cart-summary{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;font-size:.85rem}
+.cart-count{color:#71717a}
+.cart-total{font-size:1.1rem;font-weight:900;color:#18181b}
+.order-submit-btn{background:#18181b;color:#fff;border:none;border-radius:10px;padding:14px;font-size:.9rem;font-weight:700;cursor:pointer;width:100%}
+.order-submit-btn:hover{background:#3f3f46}
+.order-submit-btn:disabled{opacity:.35;cursor:not-allowed}
+
+/* ── spin wheel ── */
 .spin-wrap{display:flex;flex-direction:column;align-items:center;gap:16px;padding-top:6px}
 .wheel-outer{position:relative;display:inline-block}
-#wheel{border-radius:50%;border:5px solid var(--ink);display:block;box-shadow:0 8px 24px rgba(0,0,0,.12)}
+#wheel{border-radius:50%;border:5px solid #18181b;display:block;box-shadow:0 8px 24px rgba(0,0,0,.12)}
 #wheel-pointer{position:absolute;top:-11px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:11px solid transparent;border-right:11px solid transparent;border-top:22px solid #ef4444;filter:drop-shadow(0 2px 4px rgba(0,0,0,.25))}
-.spin-btn{background:var(--ink);color:#fff;border:none;border-radius:10px;padding:12px 36px;font-size:.92rem;font-weight:700;cursor:pointer}
+.spin-btn{background:#18181b;color:#fff;border:none;border-radius:10px;padding:12px 36px;font-size:.92rem;font-weight:700;cursor:pointer}
 .spin-btn:disabled{opacity:.35;cursor:not-allowed}
 .spin-result{font-size:1rem;font-weight:700;color:#16a34a;min-height:24px;text-align:center}
-.spin-note{font-size:.72rem;color:var(--dim);text-align:center}
+.spin-note{font-size:.72rem;color:#a1a1aa;text-align:center}
 
-/* ── store ────────────────────────────────── */
-.store-pts-bar{background:var(--ink);color:#fff;border-radius:12px;padding:18px 20px;display:flex;align-items:center;justify-content:space-between}
+/* ── store ── */
+.store-pts-bar{background:#18181b;color:#fff;border-radius:12px;padding:18px 20px;display:flex;align-items:center;justify-content:space-between}
 .store-pts-bar h3{font-size:1.7rem;font-weight:900;letter-spacing:-.02em;line-height:1}
 .store-pts-bar p{font-size:.7rem;opacity:.55;margin-top:4px}
 .store-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-.store-item{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 12px;display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;text-align:center;transition:transform .12s,border-color .12s}
+.store-item{background:#fff;border:1px solid #e4e4e7;border-radius:12px;padding:16px 12px;display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;text-align:center;transition:transform .12s,border-color .12s}
 .store-item:hover{border-color:#a1a1aa}
 .store-item:active{transform:scale(.96)}
 .store-icon{font-size:2.1rem;line-height:1}
-.store-name{font-size:.8rem;font-weight:700;color:var(--ink)}
-.store-desc{font-size:.66rem;color:var(--muted);line-height:1.5}
-.store-cost{background:#f4f4f5;color:var(--ink);border-radius:6px;padding:3px 10px;font-size:.7rem;font-weight:700;margin-top:2px}
+.store-name-s{font-size:.8rem;font-weight:700;color:#18181b}
+.store-desc{font-size:.66rem;color:#71717a;line-height:1.5}
+.store-cost{background:#f4f4f5;color:#18181b;border-radius:6px;padding:3px 10px;font-size:.7rem;font-weight:700;margin-top:2px}
 
-/* ── modal ────────────────────────────────── */
+/* ── redeem modal ── */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:50;align-items:flex-end;justify-content:center}
 .modal-overlay.open{display:flex}
 .modal-sheet{background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:520px;padding:22px 20px 32px;animation:slideUp .25s ease}
-@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
 .modal-title{font-size:1.05rem;font-weight:700;margin-bottom:6px}
-.modal-desc{font-size:.8rem;color:var(--muted);margin-bottom:20px;line-height:1.6}
+.modal-desc{font-size:.8rem;color:#71717a;margin-bottom:20px;line-height:1.6}
 .modal-cost-row{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:20px}
 .modal-cost-big{font-size:1.7rem;font-weight:900}
-.modal-pts-remain{font-size:.78rem;color:var(--muted);padding-bottom:6px}
+.modal-pts-remain{font-size:.78rem;color:#71717a;padding-bottom:6px}
 .modal-btns{display:flex;gap:10px}
 .modal-btn{flex:1;border:none;border-radius:10px;padding:13px;font-size:.88rem;font-weight:700;cursor:pointer}
-.modal-btn-cancel{background:#f4f4f5;color:var(--ink)}
-.modal-btn-ok{background:var(--ink);color:#fff}
+.modal-btn-cancel{background:#f4f4f5;color:#18181b}
+.modal-btn-ok{background:#18181b;color:#fff}
 .modal-btn-ok:disabled{opacity:.35;cursor:not-allowed}
 
-/* ── toast ────────────────────────────────── */
-.toast{position:fixed;bottom:calc(var(--tab-h)+14px);left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:10px 20px;border-radius:8px;font-size:.8rem;font-weight:600;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;z-index:99;white-space:nowrap}
+/* ── toast ── */
+.toast{position:fixed;bottom:78px;left:50%;transform:translateX(-50%) translateY(20px);background:#18181b;color:#fff;padding:10px 20px;border-radius:8px;font-size:.8rem;font-weight:600;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;z-index:99;white-space:nowrap}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 </style>
 </head>
 <body>
 <header>
-  <h1>Heliaris</h1>
+  <h1>Heliaris MVP v0.2</h1>
   <div class="hbtns">
     <button class="hbtn" onclick="logout()">
       <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
@@ -130,123 +183,148 @@ nav.tabs{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px s
   </div>
 </header>
 
-<div class="pages">
-  <div class="page active" id="p-home">
-    <div class="section">
-      <div class="card">
-        <div class="card-label">
-          <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          帳戶資訊
-        </div>
-        <div class="name-row" id="name">—</div>
-        <div class="room-row" id="room">—</div>
-      </div>
-      <div class="pts-hero">
-        <div class="pts-hero-top">
-          <div>
-            <h2 id="pts-big">—</h2>
-            <p id="pts-room-label">宿舍積分</p>
-          </div>
-          <span class="pts-badge" id="pts-sync-badge">即時同步</span>
-        </div>
-        <button class="checkin-btn" onclick="doCheckin()">合作商家內用打卡 ＋ 積分</button>
-      </div>
-      <div class="card">
-        <div class="card-label">
-          <svg viewBox="0 0 24 24"><path d="M16 16h6v6h-6z"/><path d="M2 16h6v6H2z"/><path d="M9 2h6v6H9z"/><path d="M5 16V8h14v8"/><path d="M12 8v8"/></svg>
-          待取餐點
-        </div>
-        <div id="pending-area"><div class="no-pending">目前沒有待取餐點</div></div>
-      </div>
-      <div class="card">
-        <div class="card-label">
-          <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-          本月外送排行（外送越少排越前）
-        </div>
-        <div id="rank-list"><div class="no-pending">載入中…</div></div>
-      </div>
+<!-- ── 首頁 ── -->
+<div class="section active" id="sec-home">
+  <div class="card">
+    <div class="card-label">
+      <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      帳戶資訊
     </div>
+    <div class="name-row" id="name">—</div>
+    <div class="room-row" id="room">—</div>
   </div>
-
-  <div class="page" id="p-spin">
-    <div class="section">
-      <div class="card">
-        <div class="card-label">
-          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
-          幸運轉盤
-        </div>
-        <div class="spin-wrap">
-          <div class="wheel-outer">
-            <canvas id="wheel" width="250" height="250"></canvas>
-            <div id="wheel-pointer"></div>
-          </div>
-          <button class="spin-btn" id="spin-btn" onclick="spinWheel()">轉動（10 點）</button>
-          <div class="spin-result" id="spin-result"></div>
-          <div class="spin-note">每次轉動消耗 10 積分，獎品即時兌換 🎁</div>
-        </div>
+  <div class="pts-hero">
+    <div class="pts-hero-top">
+      <div>
+        <h2 id="pts-big">—</h2>
+        <p id="pts-room-label">宿舍積分</p>
       </div>
+      <span class="pts-badge" id="pts-sync-badge">即時同步</span>
     </div>
+    <button class="checkin-btn" onclick="doCheckin()">合作商家內用打卡 ＋ 積分</button>
   </div>
-
-  <div class="page" id="p-store">
-    <div class="section">
-      <div class="store-pts-bar">
-        <div>
-          <h3 id="store-pts">—</h3>
-          <p id="store-room">宿舍積分</p>
-        </div>
-        <div style="font-size:2rem">🏪</div>
-      </div>
-      <div class="store-grid" id="store-grid"></div>
+  <div class="card">
+    <div class="card-label">
+      <svg viewBox="0 0 24 24"><path d="M16 16h6v6h-6z"/><path d="M2 16h6v6H2z"/><path d="M9 2h6v6H9z"/><path d="M5 16V8h14v8"/><path d="M12 8v8"/></svg>
+      訂單狀態
     </div>
+    <div id="pending-area"><div class="no-pending">目前沒有進行中的訂單</div></div>
   </div>
+  <div class="card">
+    <div class="card-label">
+      <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      本月外送排行（外送越少排越前）
+    </div>
+    <div id="rank-list"><div class="no-pending">載入中…</div></div>
+  </div>
+</div>
 
-  <div class="page" id="p-orders">
-    <div class="section">
-      <div class="card">
-        <div class="card-label">
-          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-          近期外送記錄
-        </div>
-        <div id="order-list"><div class="no-pending">尚無訂單記錄</div></div>
+<!-- ── 點餐 ── -->
+<div class="section" id="sec-order">
+  <div id="order-page-content"></div>
+</div>
+
+<!-- ── 轉盤 ── -->
+<div class="section" id="sec-spin">
+  <div class="card">
+    <div class="card-label">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
+      幸運轉盤
+    </div>
+    <div class="spin-wrap">
+      <div class="wheel-outer">
+        <canvas id="wheel" width="320" height="320"></canvas>
+        <div id="wheel-pointer"></div>
       </div>
+      <button class="spin-btn" id="spin-btn" onclick="spinWheel()">轉動（10 點）</button>
+      <div class="spin-result" id="spin-result"></div>
+      <div class="spin-note">每次轉動消耗 10 積分，獎品即時兌換</div>
     </div>
   </div>
 </div>
 
-<nav class="tabs">
-  <button class="tab active" data-tab="p-home" onclick="switchTab(this)">
+<!-- ── 積分商店 ── -->
+<div class="section" id="sec-store">
+  <div class="store-pts-bar">
+    <div>
+      <h3 id="store-pts">—</h3>
+      <p id="store-room">宿舍積分</p>
+    </div>
+    <div style="font-size:2rem">🏪</div>
+  </div>
+  <div class="store-grid" id="store-grid"></div>
+</div>
+
+<!-- ── 訂單紀錄 ── -->
+<div class="section" id="sec-orders">
+  <div class="card">
+    <div class="card-label">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      近期外送記錄
+    </div>
+    <div id="order-list"><div class="no-pending">尚無訂單記錄</div></div>
+  </div>
+</div>
+
+<nav class="tab-bar">
+  <button class="tab-item active" onclick="switchTab('home',0)">
     <svg viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
     <span>首頁</span>
   </button>
-  <button class="tab" data-tab="p-spin" onclick="switchTab(this)">
+  <button class="tab-item" onclick="switchTab('order',1)">
+    <svg viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+    <span>點餐</span>
+  </button>
+  <button class="tab-item" onclick="switchTab('spin',2)">
     <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
     <span>轉盤</span>
   </button>
-  <button class="tab" data-tab="p-store" onclick="switchTab(this)">
-    <svg viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+  <button class="tab-item" onclick="switchTab('store',3)">
+    <svg viewBox="0 0 24 24"><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"/><path d="M4 6v12c0 1.1.9 2 2 2h14v-4"/><path d="M18 12a2 2 0 0 0 0 4h4v-4z"/></svg>
     <span>積分商店</span>
   </button>
-  <button class="tab" data-tab="p-orders" onclick="switchTab(this)">
+  <button class="tab-item" onclick="switchTab('orders',4)">
     <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
     <span>訂單</span>
   </button>
 </nav>
 
-<div class="modal-overlay" id="redeem-modal" onclick="closeModal(event)">
+<!-- ── menu modal ── -->
+<div class="menu-modal" id="menu-modal" onclick="closeMenuModal(event)">
+  <div class="menu-sheet" onclick="event.stopPropagation()">
+    <div class="menu-header">
+      <div class="menu-header-left">
+        <span class="mh-name" id="mm-name"></span>
+        <span class="mh-cat" id="mm-cat"></span>
+      </div>
+      <button class="menu-close" onclick="document.getElementById('menu-modal').classList.remove('open')">✕</button>
+    </div>
+    <div class="menu-body" id="mm-body"></div>
+    <div class="menu-footer">
+      <div class="cart-summary">
+        <span class="cart-count" id="mm-count">0 品項</span>
+        <span class="cart-total" id="mm-total">$0</span>
+      </div>
+      <button class="order-submit-btn" id="mm-submit" onclick="submitOrder()" disabled>送出訂單</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── redeem modal ── -->
+<div class="modal-overlay" id="redeem-modal" onclick="closeRedeemModal(event)">
   <div class="modal-sheet">
-    <div class="modal-title" id="modal-title"></div>
-    <div class="modal-desc" id="modal-desc"></div>
+    <div class="modal-title" id="rdm-title"></div>
+    <div class="modal-desc" id="rdm-desc"></div>
     <div class="modal-cost-row">
       <div>
-        <div style="font-size:.72rem;color:var(--muted);margin-bottom:2px">所需積分</div>
-        <div class="modal-cost-big" id="modal-cost"></div>
+        <div style="font-size:.72rem;color:#71717a;margin-bottom:2px">所需積分</div>
+        <div class="modal-cost-big" id="rdm-cost"></div>
       </div>
-      <div class="modal-pts-remain" id="modal-remain"></div>
+      <div class="modal-pts-remain" id="rdm-remain"></div>
     </div>
     <div class="modal-btns">
       <button class="modal-btn modal-btn-cancel" onclick="document.getElementById('redeem-modal').classList.remove('open')">取消</button>
-      <button class="modal-btn modal-btn-ok" id="modal-confirm" onclick="confirmRedeem()">確認兌換</button>
+      <button class="modal-btn modal-btn-ok" id="rdm-confirm" onclick="confirmRedeem()">確認兌換</button>
     </div>
   </div>
 </div>
@@ -254,6 +332,7 @@ nav.tabs{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px s
 <div class="toast" id="toast"></div>
 
 <script>
+// ── data ──
 const STORE_ITEMS=[
   {icon:'🅿️',name:'停車費折抵',desc:'宿舍停車場\n單次抵用 $30',cost:40},
   {icon:'🎪',name:'社團會費折抵',desc:'任意社團\n學期會費折抵 $50',cost:60},
@@ -265,6 +344,9 @@ const STORE_ITEMS=[
   {icon:'⚡',name:'宿舍電費折抵',desc:'下期電費\n折抵 $20',cost:30},
 ];
 let myRoom='',myPoints=0,pendingRedeem=null;
+let _merchants=[], _cart={}, _currentMerchant=null, _activeOrder=null;
+
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 function showToast(msg,dur=2500){
   const t=document.getElementById('toast');
@@ -272,13 +354,13 @@ function showToast(msg,dur=2500){
   setTimeout(()=>t.classList.remove('show'),dur);
 }
 
-function switchTab(btn){
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  btn.classList.add('active');
-  document.getElementById(btn.dataset.tab).classList.add('active');
+function switchTab(name,idx){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab-item').forEach((t,i)=>t.classList.toggle('active',i===idx));
+  document.getElementById('sec-'+name).classList.add('active');
   window.scrollTo(0,0);
-  if(btn.dataset.tab==='p-spin')drawWheel();
+  if(name==='spin') drawWheel();
+  if(name==='order') renderOrderPage();
 }
 
 async function logout(){
@@ -286,6 +368,219 @@ async function logout(){
   location.href='/login';
 }
 
+// ── load ──
+async function load(){
+  const res=await fetch('/api/my-orders');
+  if(res.status===401){location.href='/login';return;}
+  const d=await res.json();
+  myRoom=d.room;
+  _activeOrder=d.active;
+  document.getElementById('name').textContent=d.name;
+  document.getElementById('room').textContent='宿舍：'+d.room;
+  document.getElementById('store-room').textContent=d.room+' 宿舍積分';
+  updatePts(d.points);
+  renderPendingArea(d);
+  renderOrderList(d.orders);
+  renderRankings();
+}
+
+function renderPendingArea(d){
+  const pa=document.getElementById('pending-area');
+  const active = d.active;
+  if(!active){
+    pa.innerHTML='<div class="no-pending">目前沒有進行中的訂單</div>';
+    return;
+  }
+  if(active.status==='pending'){
+    pa.innerHTML=`<div class="status-pending">
+      <div class="sp-icon">⏳</div>
+      <div><div class="sp-info">訂單已送出，等待外送員取餐</div>
+      <div class="sp-sub">${esc(active.merchant)}</div></div>
+    </div>`;
+  } else if(active.status==='delivering'){
+    pa.innerHTML=`<div class="status-delivering">
+      <div class="sp-icon">🚗</div>
+      <div><div class="sp-info">外送員正在配送中</div>
+      <div class="sp-sub">${esc(active.merchant)}</div></div>
+    </div>`;
+  } else if(active.status==='delivered'){
+    const comp = active.compartment ? `<div class="pending-compartment">外送箱 按鈕 ${active.compartment}</div>` : '';
+    pa.innerHTML=`<div class="pending-box"><div>
+      <div class="pending-info">📦 餐點已送達，請前往取餐</div>
+      <div class="pending-merchant">${esc(active.merchant)}</div>
+      ${comp}
+    </div><button class="open-btn" id="open-btn" onclick="openBox()">開箱</button></div>`;
+  }
+}
+
+function renderOrderList(orders){
+  const ol=document.getElementById('order-list');
+  if(!orders.length){ol.innerHTML='<div class="no-pending">尚無訂單記錄</div>';return;}
+  const statusMap = {
+    'pending':    {label:'等待中', cls:'badge-blue'},
+    'delivering': {label:'配送中', cls:'badge-green'},
+    'delivered':  {label:'待取',   cls:'badge-yellow'},
+    'picked_up':  {label:'已取',   cls:'badge-gray'},
+  };
+  ol.innerHTML=orders.map(o => {
+    const s = statusMap[o.status] || {label:o.status, cls:'badge-gray'};
+    return `<div class="order-row"><div><div class="order-merchant">${esc(o.merchant)}</div>
+      <div class="order-date">${o.created_at||o.delivered_at||o.month}</div></div>
+      <span class="badge ${s.cls}">${s.label}</span></div>`;
+  }).join('');
+}
+
+async function renderRankings(){
+  const rr=await fetch('/api/rankings');
+  if(!rr.ok) return;
+  const ranks=await rr.json();
+  if(!Array.isArray(ranks)||!ranks.length) return;
+  const mx=Math.max(...ranks.map(r=>r.count));
+  const M=[{bg:'#fef9c3',c:'#92400e',t:'🥇'},{bg:'#f0f0f0',c:'#52525b',t:'🥈'},
+           {bg:'#fde8d8',c:'#9a3412',t:'🥉'},{bg:'#f4f4f5',c:'#a1a1aa',t:'4'}];
+  document.getElementById('rank-list').innerHTML=ranks.map((r,i)=>{
+    const m=M[i]||M[3];
+    return `<div class="rank-row">
+      <div class="rank-medal" style="background:${m.bg};color:${m.c}">${m.t}</div>
+      <div class="rank-room">${r.room}</div>
+      <div class="rank-bar-wrap"><div class="rank-bar" style="width:${Math.round(r.count/mx*100)}%"></div></div>
+      <div class="rank-cnt">${r.count}單</div></div>`;
+  }).join('');
+}
+
+function updatePts(pts){
+  myPoints=pts;
+  document.getElementById('pts-big').textContent=pts;
+  document.getElementById('store-pts').textContent=pts;
+}
+
+// ── ordering ──
+async function loadMerchants(){
+  const res = await fetch('/api/merchants/public');
+  if(!res.ok) return;
+  _merchants = await res.json();
+  _merchants = _merchants.filter(m => m.menu && m.menu.length > 0);
+}
+
+function renderOrderPage(){
+  const el = document.getElementById('order-page-content');
+  if(_activeOrder){
+    const statusText = {
+      'pending': '等待外送員取餐中…',
+      'delivering': '外送員正在配送中…',
+      'delivered': '餐點已送達！請至首頁開箱',
+    };
+    el.innerHTML = `<div class="order-has-active">
+      <div class="oha-title">${statusText[_activeOrder.status]||'訂單進行中'}</div>
+      <div class="oha-sub">${esc(_activeOrder.merchant)}</div>
+    </div>`;
+    return;
+  }
+  if(!_merchants.length){
+    el.innerHTML = '<div class="no-pending">目前沒有商家提供菜單</div>';
+    return;
+  }
+  el.innerHTML = _merchants.map(m => {
+    const avail = m.menu.filter(i=>i.available).length;
+    return `<div class="merchant-card" onclick="openMerchantMenu('${esc(m.account_id)}')">
+      <div class="mc-left">
+        <div class="mc-name">${esc(m.store_name)}</div>
+        <div class="mc-meta">
+          <span class="mc-cat">${esc(m.category||'其他')}</span>
+          <span>${avail} 個品項</span>
+        </div>
+      </div>
+      <div class="mc-arrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+    </div>`;
+  }).join('');
+}
+
+function openMerchantMenu(accountId){
+  const m = _merchants.find(x => x.account_id === accountId);
+  if(!m) return;
+  _currentMerchant = m;
+  _cart = {};
+  document.getElementById('mm-name').textContent = m.store_name;
+  document.getElementById('mm-cat').textContent = m.category || '';
+  const items = m.menu.filter(i => i.available);
+  const groups = {};
+  items.forEach(i => (groups[i.category] = groups[i.category] || []).push(i));
+  document.getElementById('mm-body').innerHTML = Object.entries(groups).map(([cat, items]) =>
+    `<div class="menu-cat-group">
+      <div class="menu-cat-title">${esc(cat)}</div>
+      ${items.map(item => `<div class="mi-row">
+        <div class="mi-info">
+          <div class="mi-name">${esc(item.name)}</div>
+          ${item.desc ? `<div class="mi-desc">${esc(item.desc)}</div>` : ''}
+        </div>
+        <div class="mi-price">$${item.price}</div>
+        <div class="mi-qty">
+          <button onclick="cartChange(${item.id},-1)">−</button>
+          <span class="mi-qty-num" id="qty-${item.id}">0</span>
+          <button onclick="cartChange(${item.id},1)">+</button>
+        </div>
+      </div>`).join('')}
+    </div>`
+  ).join('');
+  updateCartUI();
+  document.getElementById('menu-modal').classList.add('open');
+}
+
+function cartChange(itemId, delta){
+  const cur = _cart[itemId] || 0;
+  const nxt = Math.max(0, cur + delta);
+  if(nxt === 0) delete _cart[itemId];
+  else _cart[itemId] = nxt;
+  const el = document.getElementById('qty-'+itemId);
+  if(el) el.textContent = nxt;
+  updateCartUI();
+}
+
+function updateCartUI(){
+  if(!_currentMerchant) return;
+  let count=0, total=0;
+  for(const [id, qty] of Object.entries(_cart)){
+    const item = _currentMerchant.menu.find(i => i.id === parseInt(id));
+    if(item){ count += qty; total += item.price * qty; }
+  }
+  document.getElementById('mm-count').textContent = count + ' 品項';
+  document.getElementById('mm-total').textContent = '$' + total;
+  document.getElementById('mm-submit').disabled = count === 0;
+}
+
+async function submitOrder(){
+  if(!_currentMerchant || Object.keys(_cart).length === 0) return;
+  const items = [];
+  for(const [id, qty] of Object.entries(_cart)){
+    const item = _currentMerchant.menu.find(i => i.id === parseInt(id));
+    if(item) items.push({name: item.name, price: item.price, qty});
+  }
+  const btn = document.getElementById('mm-submit');
+  btn.disabled = true; btn.textContent = '送出中…';
+  const res = await fetch('/api/orders', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({merchant: _currentMerchant.store_name, items})
+  });
+  const d = await res.json();
+  if(!res.ok){
+    showToast('❌ ' + (d.error || '下單失敗'));
+    btn.disabled = false; btn.textContent = '送出訂單';
+    return;
+  }
+  document.getElementById('menu-modal').classList.remove('open');
+  showToast('✅ 訂單已送出！');
+  _cart = {};
+  _currentMerchant = null;
+  load();
+}
+
+function closeMenuModal(e){
+  if(e.target === document.getElementById('menu-modal'))
+    document.getElementById('menu-modal').classList.remove('open');
+}
+
+// ── student actions ──
 async function openBox(){
   const btn=document.getElementById('open-btn');
   if(btn)btn.disabled=true;
@@ -303,57 +598,7 @@ async function doCheckin(){
   showToast('🎉 打卡成功！+'+d.added+' 點，宿舍共 '+d.total+' 點');
 }
 
-async function load(){
-  const res=await fetch('/api/my-orders');
-  if(res.status===401){location.href='/login';return;}
-  const d=await res.json();
-  myRoom=d.room;
-  document.getElementById('name').textContent=d.name;
-  document.getElementById('room').textContent='宿舍：'+d.room;
-  document.getElementById('store-room').textContent=d.room+' 宿舍積分';
-  updatePts(d.points);
-  const pa=document.getElementById('pending-area');
-  if(d.pending){
-    pa.innerHTML='<div class="pending-box"><div>'
-      +'<div class="pending-info">📦 餐點已送達，請前往取餐</div>'
-      +'<div class="pending-merchant">'+d.pending.merchant+'</div>'
-      +'</div><button class="open-btn" id="open-btn" onclick="openBox()">開箱</button></div>';
-  }else{pa.innerHTML='<div class="no-pending">目前沒有待取餐點</div>';}
-  const ol=document.getElementById('order-list');
-  if(!d.orders.length){ol.innerHTML='<div class="no-pending">尚無訂單記錄</div>';}
-  else{
-    ol.innerHTML=d.orders.map(function(o){
-      return '<div class="order-row"><div><div class="order-merchant">'+o.merchant+'</div>'
-        +'<div class="order-date">'+(o.delivered_at||o.month)+'</div></div>'
-        +'<span class="badge '+(o.status==='delivered'?'badge-yellow':'badge-gray')+'">'
-        +(o.status==='delivered'?'待取':'已取')+'</span></div>';
-    }).join('');
-  }
-  const rr=await fetch('/api/rankings');
-  if(rr.ok){
-    const ranks=await rr.json();
-    if(Array.isArray(ranks)&&ranks.length){
-      const mx=Math.max.apply(null,ranks.map(function(r){return r.count;}));
-      const M=[{bg:'#fef9c3',c:'#92400e',t:'🥇'},{bg:'#f0f0f0',c:'#52525b',t:'🥈'},
-               {bg:'#fde8d8',c:'#9a3412',t:'🥉'},{bg:'#f4f4f5',c:'#a1a1aa',t:'4'}];
-      document.getElementById('rank-list').innerHTML=ranks.map(function(r,i){
-        const m=M[i]||M[3];
-        return '<div class="rank-row">'
-          +'<div class="rank-medal" style="background:'+m.bg+';color:'+m.c+'">'+m.t+'</div>'
-          +'<div class="rank-room">'+r.room+'</div>'
-          +'<div class="rank-bar-wrap"><div class="rank-bar" style="width:'+Math.round(r.count/mx*100)+'%"></div></div>'
-          +'<div class="rank-cnt">'+r.count+'單</div></div>';
-      }).join('');
-    }
-  }
-}
-
-function updatePts(pts){
-  myPoints=pts;
-  document.getElementById('pts-big').textContent=pts;
-  document.getElementById('store-pts').textContent=pts;
-}
-
+// ── SSE ──
 function connectSSE(){
   const es=new EventSource('/api/points-stream');
   es.onmessage=function(e){
@@ -362,35 +607,50 @@ function connectSSE(){
       updatePts(pts);
       const b=document.getElementById('pts-sync-badge');
       b.textContent='已同步 ✓';
-      setTimeout(function(){b.textContent='即時同步';},2000);
+      setTimeout(()=>b.textContent='即時同步',2000);
     }
   };
   es.onerror=function(){es.close();setTimeout(connectSSE,5000);};
 }
 
+function connectOrderSSE(){
+  const es=new EventSource('/api/order-stream');
+  es.onmessage=function(e){
+    try{
+      const data=JSON.parse(e.data);
+      if(data.type==='delivered'){
+        showToast('📦 餐點已送達！請前往外送箱取餐');
+      }
+      load();
+    }catch(ex){}
+  };
+  es.onerror=function(){es.close();setTimeout(connectOrderSSE,5000);};
+}
+
+// ── store ──
 function buildStore(){
-  document.getElementById('store-grid').innerHTML=STORE_ITEMS.map(function(item,i){
-    return '<div class="store-item" onclick="openRedeem('+i+')">'
-      +'<div class="store-icon">'+item.icon+'</div>'
-      +'<div class="store-name">'+item.name+'</div>'
-      +'<div class="store-desc">'+item.desc.replace('\n','<br>')+'</div>'
-      +'<div class="store-cost">'+item.cost+' 點</div>'
-      +'</div>';
-  }).join('');
+  document.getElementById('store-grid').innerHTML=STORE_ITEMS.map((item,i)=>
+    `<div class="store-item" onclick="openRedeem(${i})">
+      <div class="store-icon">${item.icon}</div>
+      <div class="store-name-s">${item.name}</div>
+      <div class="store-desc">${item.desc.replace('\n','<br>')}</div>
+      <div class="store-cost">${item.cost} 點</div>
+    </div>`
+  ).join('');
 }
 
 function openRedeem(idx){
   const item=STORE_ITEMS[idx];
   pendingRedeem=item;
-  document.getElementById('modal-title').textContent=item.name;
-  document.getElementById('modal-desc').textContent=item.desc.replace('\n',' — ');
-  document.getElementById('modal-cost').textContent=item.cost+' 點';
-  document.getElementById('modal-remain').textContent='兌換後剩 '+(myPoints-item.cost)+' 點';
-  document.getElementById('modal-confirm').disabled=(myPoints<item.cost);
+  document.getElementById('rdm-title').textContent=item.name;
+  document.getElementById('rdm-desc').textContent=item.desc.replace('\n',' — ');
+  document.getElementById('rdm-cost').textContent=item.cost+' 點';
+  document.getElementById('rdm-remain').textContent='兌換後剩 '+(myPoints-item.cost)+' 點';
+  document.getElementById('rdm-confirm').disabled=(myPoints<item.cost);
   document.getElementById('redeem-modal').classList.add('open');
 }
 
-function closeModal(e){
+function closeRedeemModal(e){
   if(e.target===document.getElementById('redeem-modal'))
     document.getElementById('redeem-modal').classList.remove('open');
 }
@@ -406,6 +666,7 @@ async function confirmRedeem(){
   pendingRedeem=null;
 }
 
+// ── spin wheel ──
 const SPIN_COST=10;
 const PRIZES=[
   {label:'停車費\n$20',bg:'#ef4444',fg:'#fff'},
@@ -424,52 +685,85 @@ function drawWheel(deg){
   const canvas=document.getElementById('wheel');
   if(!canvas)return;
   const ctx=canvas.getContext('2d');
-  const n=PRIZES.length,cx=125,cy=125,r=117;
-  ctx.clearRect(0,0,250,250);
+  const n=PRIZES.length,cx=160,cy=160,r=152;
+  ctx.clearRect(0,0,320,320);
   ctx.save();
-  ctx.translate(cx,cy);ctx.rotate(deg*Math.PI/180);ctx.translate(-cx,-cy);
-  for(var i=0;i<n;i++){
-    var p=PRIZES[i];
-    var a1=(i/n)*2*Math.PI-Math.PI/2;
-    var a2=((i+1)/n)*2*Math.PI-Math.PI/2;
-    ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,a1,a2);ctx.closePath();
+  ctx.translate(cx,cy);
+  ctx.rotate(deg*Math.PI/180);
+
+  for(let i=0;i<n;i++){
+    const p=PRIZES[i];
+    const a1=(i/n)*2*Math.PI-Math.PI/2;
+    const a2=((i+1)/n)*2*Math.PI-Math.PI/2;
+    const mid=(a1+a2)/2;
+
+    ctx.beginPath();ctx.moveTo(0,0);ctx.arc(0,0,r,a1,a2);ctx.closePath();
     ctx.fillStyle=p.bg;ctx.fill();
-    ctx.strokeStyle='rgba(255,255,255,.4)';ctx.lineWidth=1.5;ctx.stroke();
+    ctx.strokeStyle='rgba(255,255,255,.55)';ctx.lineWidth=2;ctx.stroke();
+
     ctx.save();
-    ctx.translate(cx,cy);ctx.rotate((a1+a2)/2+Math.PI/2);
-    ctx.textAlign='center';ctx.fillStyle=p.fg;ctx.font='bold 9.5px system-ui';
-    var lines=p.label.split('\n');
-    for(var li=0;li<lines.length;li++){
-      ctx.fillText(lines[li],0,r-20+(li-0.5)*13);
+    ctx.rotate(mid);
+    ctx.fillStyle=p.fg;
+    ctx.shadowColor='rgba(0,0,0,.45)';ctx.shadowBlur=2;ctx.shadowOffsetY=1;
+    ctx.textBaseline='middle';
+
+    let nMid = mid;
+    while(nMid > Math.PI) nMid -= 2*Math.PI;
+    while(nMid <= -Math.PI) nMid += 2*Math.PI;
+    const flip = Math.abs(nMid) > Math.PI/2;
+
+    if(flip){
+      ctx.rotate(Math.PI);
+      ctx.textAlign='left';
+    } else {
+      ctx.textAlign='right';
     }
+    const x = flip ? -(r-14) : (r-14);
+
+    const lines=p.label.split('\n');
+    if(lines.length===1){
+      ctx.font='bold 14px system-ui';
+      ctx.fillText(lines[0], x, 0);
+    } else {
+      ctx.font='bold 14px system-ui';
+      ctx.fillText(lines[0], x, -9);
+      ctx.font='bold 13px system-ui';
+      ctx.fillText(lines[1], x, 9);
+    }
+    ctx.shadowColor='transparent';ctx.shadowBlur=0;ctx.shadowOffsetY=0;
     ctx.restore();
   }
-  ctx.beginPath();ctx.arc(cx,cy,22,0,2*Math.PI);ctx.fillStyle='#fff';ctx.fill();
-  ctx.beginPath();ctx.arc(cx,cy,15,0,2*Math.PI);ctx.fillStyle='#18181b';ctx.fill();
+
+  ctx.beginPath();ctx.arc(0,0,30,0,2*Math.PI);ctx.fillStyle='#fff';ctx.fill();
+  ctx.beginPath();ctx.arc(0,0,22,0,2*Math.PI);ctx.fillStyle='#18181b';ctx.fill();
+  ctx.fillStyle='#fff';ctx.font='bold 11px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText('GO', 0, 0);
+  ctx.textBaseline='alphabetic';
+
   ctx.restore();
 }
 
 async function spinWheel(){
   if(wSpinning)return;
   if(myPoints<SPIN_COST){showToast('❌ 積分不足，需要 '+SPIN_COST+' 點');return;}
-  var res=await fetch('/api/redeem',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({cost:SPIN_COST})});
-  var d=await res.json();
+  const res=await fetch('/api/redeem',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({cost:SPIN_COST})});
+  const d=await res.json();
   if(!d.ok){showToast('❌ '+(d.error||'扣點失敗'));return;}
   updatePts(d.total);
   wSpinning=true;
-  var btn=document.getElementById('spin-btn');
+  const btn=document.getElementById('spin-btn');
   btn.disabled=true;
   document.getElementById('spin-result').textContent='';
-  var extra=1440+360+Math.random()*360;
-  var from=wDeg,duration=3000,start=performance.now();
+  const extra=1440+360+Math.random()*360;
+  const from=wDeg,duration=3000,start=performance.now();
   function animate(now){
-    var t=Math.min((now-start)/duration,1);
-    var ease=1-Math.pow(1-t,4);
+    const t=Math.min((now-start)/duration,1);
+    const ease=1-Math.pow(1-t,4);
     drawWheel(from+extra*ease);
     if(t<1){requestAnimationFrame(animate);}
     else{
       wDeg=(from+extra)%360;
-      var idx=Math.floor(((360-wDeg)%360)/360*PRIZES.length)%PRIZES.length;
+      const idx=Math.floor(((360-wDeg)%360)/360*PRIZES.length)%PRIZES.length;
       document.getElementById('spin-result').textContent='🎉 '+PRIZES[idx].label.replace('\n',' ');
       wSpinning=false;btn.disabled=false;
     }
@@ -477,9 +771,16 @@ async function spinWheel(){
   requestAnimationFrame(animate);
 }
 
-load();
-buildStore();
-connectSSE();
+// ── init ──
+async function init(){
+  await loadMerchants();
+  await load();
+  buildStore();
+  connectSSE();
+  connectOrderSSE();
+  setInterval(load, 10000);
+}
+init();
 </script>
 </body>
 </html>

@@ -6,55 +6,85 @@
 <title>Heliaris 外送員</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:#f4f4f5;font-family:system-ui,-apple-system,sans-serif;min-height:100vh}
-header{background:#18181b;color:#fff;padding:14px 20px;display:flex;align-items:center;justify-content:space-between}
+body{background:#f4f4f5;font-family:system-ui,-apple-system,sans-serif;min-height:100vh;padding-bottom:24px}
+
+header{background:#18181b;color:#fff;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
 header h1{font-size:.9rem;font-weight:700;letter-spacing:.06em}
-.logout{font-size:.75rem;background:none;border:none;color:#a1a1aa;cursor:pointer}
-.logout:hover{color:#fff}
-main{max-width:480px;margin:0 auto;padding:18px 14px;display:flex;flex-direction:column;gap:14px}
+.hbtns{display:flex;gap:8px}
+.hbtn{font-size:.75rem;background:none;border:1px solid #3f3f46;color:#a1a1aa;border-radius:6px;padding:5px 10px;cursor:pointer;display:flex;align-items:center;gap:4px}
+.hbtn:hover{color:#fff;border-color:#71717a}
+.hbtn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+main{max-width:520px;margin:0 auto;padding:18px 14px;display:flex;flex-direction:column;gap:14px}
 .card{background:#fff;border:1px solid #e4e4e7;border-radius:12px;padding:20px}
-.card-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#a1a1aa;margin-bottom:14px}
-.room-section{margin-bottom:18px}
-.room-title{font-size:.95rem;font-weight:700;color:#18181b;margin-bottom:10px;display:flex;align-items:center;gap:8px}
-.room-badge{background:#f4f4f5;border-radius:6px;padding:2px 8px;font-size:.72rem;font-weight:600;color:#71717a}
-.student-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid #f4f4f5}
-.student-row:last-child{border:none}
-.student-name{font-size:.88rem;font-weight:600}
-.student-id{font-size:.72rem;color:#a1a1aa;margin-top:1px}
-.send-btn{background:#18181b;color:#fff;border:none;border-radius:7px;padding:8px 14px;font-size:.78rem;font-weight:600;cursor:pointer}
-.send-btn:hover{background:#3f3f46}
-.send-btn:disabled{opacity:.35;cursor:not-allowed}
+.card-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#a1a1aa;margin-bottom:14px;display:flex;align-items:center;gap:6px}
+.card-label svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* ── active delivery ── */
+.active-delivery{background:#18181b;color:#fff;border-radius:12px;padding:24px 20px;text-align:center}
+.active-delivery .ad-title{font-size:.82rem;opacity:.6;margin-bottom:6px}
+.active-delivery .ad-merchant{font-size:1.1rem;font-weight:700;margin-bottom:2px}
+.active-delivery .ad-student{font-size:.82rem;opacity:.7}
+.btn-circle{width:120px;height:120px;border-radius:50%;border:4px solid #22c55e;background:rgba(34,197,94,.15);display:flex;flex-direction:column;align-items:center;justify-content:center;margin:20px auto;animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(34,197,94,.4)}50%{box-shadow:0 0 0 16px rgba(34,197,94,0)}}
+.btn-num{font-size:2.4rem;font-weight:900;color:#22c55e;line-height:1}
+.btn-label{font-size:.7rem;color:#86efac;margin-top:4px}
+.ad-instruction{font-size:.88rem;font-weight:600;margin-bottom:16px}
+.countdown{font-size:.78rem;color:#fbbf24;margin-bottom:16px;display:flex;align-items:center;justify-content:center;gap:6px}
+.countdown svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2}
+.ad-complete-btn{background:#22c55e;color:#fff;border:none;border-radius:10px;padding:14px 24px;font-size:.9rem;font-weight:700;cursor:pointer;width:100%}
+.ad-complete-btn:hover{background:#16a34a}
+.ad-complete-btn:disabled{opacity:.4;cursor:not-allowed}
+.ad-expired{color:#ef4444;font-size:.82rem;font-weight:600;margin-bottom:12px}
+
+/* ── order cards ── */
+.order-card{background:#fff;border:1px solid #e4e4e7;border-radius:12px;padding:16px;margin-bottom:10px}
+.order-card:last-child{margin-bottom:0}
+.oc-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.oc-merchant{font-size:1rem;font-weight:700;color:#18181b}
+.oc-badge{font-size:.65rem;font-weight:600;border-radius:5px;padding:2px 8px;flex-shrink:0}
+.oc-badge-pending{background:#fef9c3;color:#92400e}
+.oc-badge-delivering{background:#dbeafe;color:#1e40af}
+.oc-info{display:flex;gap:16px;font-size:.8rem;color:#71717a;margin-bottom:10px}
+.oc-info span{display:flex;align-items:center;gap:4px}
+.oc-info svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2}
+.oc-items{font-size:.78rem;color:#52525b;line-height:1.6;padding:8px 10px;background:#f9fafb;border-radius:8px;margin-bottom:12px}
+.oc-pickup-btn{background:#18181b;color:#fff;border:none;border-radius:8px;padding:10px;font-size:.85rem;font-weight:600;cursor:pointer;width:100%}
+.oc-pickup-btn:hover{background:#3f3f46}
+.oc-pickup-btn:disabled{opacity:.35;cursor:not-allowed}
+.no-orders{color:#a1a1aa;font-size:.82rem;text-align:center;padding:24px 0}
 .tip{background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:14px 16px;font-size:.8rem;color:#1e40af;line-height:1.6}
-select{border:1.5px solid #e4e4e7;border-radius:7px;padding:7px 10px;font-size:.82rem;width:100%;margin-bottom:10px;outline:none}
-select:focus{border-color:#18181b}
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#18181b;color:#fff;border-radius:8px;padding:10px 20px;font-size:.82rem;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999}
+
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#18181b;color:#fff;border-radius:8px;padding:10px 20px;font-size:.82rem;font-weight:600;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;white-space:nowrap}
 .toast.show{opacity:1}
 </style>
 </head>
 <body>
 <header>
-  <h1>外送員介面</h1>
-  <button class="logout" onclick="logout()">登出</button>
+  <h1>Heliaris MVP v0.2 外送員介面</h1>
+  <div class="hbtns">
+    <button class="hbtn" onclick="logout()">
+      <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      登出
+    </button>
+  </div>
 </header>
 <main>
-  <div class="tip">📦 選擇學生後按「送達開箱」，系統會自動開啟對應外送箱並記錄訂單。<br>也可直接按外送箱站上的實體按鈕開啟。</div>
-
+  <div class="tip">📦 學生下單後訂單會出現在下方，取餐後系統會指派按鈕編號與時效。</div>
+  <div id="active-area"></div>
   <div class="card">
-    <div class="card-label">選擇商家</div>
-    <select id="merchant">
-      <option>麥當勞</option><option>肯德基</option><option>摩斯漢堡</option>
-      <option>爭鮮壽司</option><option>鬍鬚張</option><option>85度C</option>
-      <option>星巴克</option><option>丹堤咖啡</option><option>50嵐</option><option>清心福全</option>
-    </select>
-  </div>
-
-  <div class="card">
-    <div class="card-label">選擇收件學生</div>
-    <div id="room-list"></div>
+    <div class="card-label">
+      <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/></svg>
+      待取訂單
+    </div>
+    <div id="order-list"><div class="no-orders">目前沒有待處理的訂單</div></div>
   </div>
 </main>
 <div class="toast" id="toast"></div>
 <script>
+let _orders = [];
+let _countdownTimer = null;
+
 function showToast(msg){
   const t=document.getElementById('toast');
   t.textContent=msg;t.classList.add('show');
@@ -66,36 +96,139 @@ async function logout(){
   location.href='/login';
 }
 
-async function deliver(sid){
-  const merchant=document.getElementById('merchant').value;
-  const btn=document.getElementById('btn-'+sid);
-  btn.disabled=true;
-  const res=await fetch('/api/delivery/open',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({student_id:sid,merchant})});
-  const d=await res.json();
-  if(!res.ok){showToast('❌ '+d.error);btn.disabled=false;return;}
-  showToast(`✅ 已開啟 ${d.room} (${d.side==='left'?'左':'右'}箱)`);
-  setTimeout(()=>btn.disabled=false,8000);
+function timeAgo(ts){
+  if(!ts) return '';
+  const diff = Math.floor((Date.now() - new Date(ts.replace(' ','T')).getTime()) / 1000);
+  if(diff < 60) return '剛剛';
+  if(diff < 3600) return Math.floor(diff/60) + ' 分鐘前';
+  return Math.floor(diff/3600) + ' 小時前';
 }
 
-async function load(){
-  const meRes=await fetch('/api/me');
-  if(meRes.status===401){location.href='/login';return;}
-  const me=await meRes.json();
-
-
-  const res=await fetch('/api/delivery/rooms');
-  if(res.status===401){location.href='/login';return;}
-  const rooms=await res.json();
-  document.getElementById('room-list').innerHTML=rooms.map(r=>`
-    <div class="room-section">
-      <div class="room-title">${r.room}<span class="room-badge">${r.students.length} 人</span></div>
-      ${r.students.map(s=>`<div class="student-row">
-        <div><div class="student-name">${s.name}</div><div class="student-id">${s.student_id}</div></div>
-        <button class="send-btn" id="btn-${s.student_id}" onclick="deliver('${s.student_id}')">送達開箱</button>
-      </div>`).join('')}
-    </div>`).join('');
+function formatCountdown(validUntil){
+  const remain = Math.max(0, Math.floor((new Date(validUntil.replace(' ','T')).getTime() - Date.now()) / 1000));
+  if(remain <= 0) return null;
+  const m = Math.floor(remain/60);
+  const s = remain % 60;
+  return `${m}:${String(s).padStart(2,'0')}`;
 }
-load();
+
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function renderOrders(){
+  const pending = _orders.filter(o => o.status === 'pending');
+  const delivering = _orders.filter(o => o.status === 'delivering');
+  const activeEl = document.getElementById('active-area');
+
+  if(delivering.length > 0){
+    const o = delivering[0];
+    const cd = o.compartment_valid_until ? formatCountdown(o.compartment_valid_until) : null;
+    const expired = o.compartment_valid_until && !cd;
+
+    activeEl.innerHTML = `
+      <div class="active-delivery">
+        <div class="ad-title">正在配送</div>
+        <div class="ad-merchant">${esc(o.merchant)}</div>
+        <div class="ad-student">${esc(o.student_name)} ・ ${o.room}</div>
+        <div class="btn-circle" ${expired ? 'style="border-color:#ef4444;background:rgba(239,68,68,.15);animation:none"' : ''}>
+          <div class="btn-num" ${expired ? 'style="color:#ef4444"' : ''}>${o.compartment || '?'}</div>
+          <div class="btn-label" ${expired ? 'style="color:#fca5a5"' : ''}>按鈕</div>
+        </div>
+        <div class="ad-instruction">請按下外送箱上的 按鈕 ${o.compartment}</div>
+        ${expired
+          ? '<div class="ad-expired">按鈕時效已過期</div>'
+          : `<div class="countdown" id="countdown">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              剩餘時間：<strong>${cd || '--:--'}</strong>
+            </div>`
+        }
+        <button class="ad-complete-btn" ${expired ? 'disabled' : ''} onclick="completeDelivery(${o.id})">
+          ${expired ? '時效已過期' : '已放入外送箱'}
+        </button>
+      </div>`;
+
+    if(_countdownTimer) clearInterval(_countdownTimer);
+    if(!expired){
+      _countdownTimer = setInterval(() => {
+        const cdEl = document.getElementById('countdown');
+        if(!cdEl) return;
+        const newCd = formatCountdown(o.compartment_valid_until);
+        if(!newCd){
+          clearInterval(_countdownTimer);
+          renderOrders();
+          return;
+        }
+        cdEl.innerHTML = `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          剩餘時間：<strong>${newCd}</strong>`;
+      }, 1000);
+    }
+  } else {
+    activeEl.innerHTML = '';
+    if(_countdownTimer){ clearInterval(_countdownTimer); _countdownTimer = null; }
+  }
+
+  const listEl = document.getElementById('order-list');
+  if(!pending.length){
+    listEl.innerHTML = '<div class="no-orders">目前沒有待處理的訂單</div>';
+    return;
+  }
+  listEl.innerHTML = pending.map(o => {
+    const itemsText = o.items.length
+      ? o.items.map(i => `${i.name} x${i.qty} $${i.price * i.qty}`).join('、')
+      : '（無明細）';
+    return `<div class="order-card">
+      <div class="oc-top">
+        <div class="oc-merchant">${esc(o.merchant)}</div>
+        <span class="oc-badge oc-badge-pending">待取餐</span>
+      </div>
+      <div class="oc-info">
+        <span>
+          <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          ${esc(o.student_name)}
+        </span>
+        <span>
+          <svg viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+          ${o.room}
+        </span>
+        <span>
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          ${timeAgo(o.created_at)}
+        </span>
+      </div>
+      <div class="oc-items">${esc(itemsText)}</div>
+      <button class="oc-pickup-btn" onclick="pickupOrder(${o.id})">取餐出發</button>
+    </div>`;
+  }).join('');
+}
+
+async function pickupOrder(orderId){
+  const res = await fetch(`/api/delivery/pickup/${orderId}`, {method:'POST'});
+  const d = await res.json();
+  if(!res.ok){ showToast('❌ ' + (d.error||'取餐失敗')); return; }
+  showToast(`✅ 已取餐！請按外送箱 按鈕 ${d.compartment}（${d.room}）`);
+  loadOrders();
+}
+
+async function completeDelivery(orderId){
+  const btn = event.target;
+  btn.disabled = true;
+  const res = await fetch(`/api/delivery/complete/${orderId}`, {method:'POST'});
+  const d = await res.json();
+  if(!res.ok){ showToast('❌ ' + (d.error||'送達失敗')); btn.disabled=false; return; }
+  showToast('✅ 已送達！學生將收到通知');
+  loadOrders();
+}
+
+async function loadOrders(){
+  const meRes = await fetch('/api/me');
+  if(meRes.status===401){ location.href='/login'; return; }
+  const res = await fetch('/api/delivery/orders');
+  if(res.status===401){ location.href='/login'; return; }
+  _orders = await res.json();
+  renderOrders();
+}
+
+loadOrders();
+setInterval(loadOrders, 8000);
 </script>
 </body>
 </html>

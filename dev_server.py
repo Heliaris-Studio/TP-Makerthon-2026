@@ -10,12 +10,16 @@ import queue
 import threading
 from flask import Flask, jsonify, Response, request, session, redirect, send_from_directory
 from core.db import (init_db, get_account, get_all_students, get_room_by_student,
-                     get_my_orders, get_pending_order, add_order, pickup_order,
+                     get_my_orders, get_pending_order, get_active_order,
+                     add_order, pickup_order, create_student_order,
+                     get_delivery_orders, delivery_pickup, delivery_complete,
+                     get_valid_button_order,
                      get_room_points, add_room_points, redeem_room_points, get_all_room_points,
                      get_all_rooms_students, get_merchants, add_merchant,
                      get_rankings, get_room_monthly_stats, get_room_merchant_stats,
                      register_merchant, get_merchant_profile, update_merchant_menu,
-                     get_all_merchant_profiles)
+                     get_all_merchant_profiles,
+                     ROOM_BUTTON, BUTTON_ROOM)
 from core.ocr import parse_menu_image
 
 app = Flask(__name__)
@@ -23,7 +27,7 @@ app.secret_key = 'dev-secret'
 
 init_db()
 
-# ── 即時積分推播（SSE）────────────────────────────────────
+# ── 即時推播（SSE）────────────────────────────────────────
 _room_subs: dict[str, list[queue.Queue]] = {}
 _subs_lock = threading.Lock()
 
@@ -38,9 +42,22 @@ def _broadcast_points(room: str, points: int):
         for q in dead:
             _room_subs[room].remove(q)
 
-# ── 硬體無關的常數 ────────────────────────────────────────
-ROOM_SIDE    = {'B301': 'left', 'B302': 'left', 'B405': 'right', 'B406': 'right'}
-BUTTON_ROOMS = {1: 'B301', 2: 'B302', 3: 'B405', 4: 'B406'}
+# 訂單狀態 SSE
+_order_subs: dict[str, list[queue.Queue]] = {}
+
+def _broadcast_order(student_id: str, data: dict):
+    with _subs_lock:
+        dead = []
+        for q in _order_subs.get(student_id, []):
+            try:
+                q.put_nowait(json.dumps(data, ensure_ascii=False))
+            except queue.Full:
+                dead.append(q)
+        for q in dead:
+            _order_subs[student_id].remove(q)
+
+# ── 硬體常數 ─────────────────────────────────────────────
+ROOM_SIDE = {'B301': 'left', 'B302': 'left', 'B405': 'right', 'B406': 'right'}
 
 FAKE_STATE = {
     "distance": 42.3,
@@ -66,6 +83,15 @@ def _require(*roles):
     if roles and acc['role'] not in roles:
         return redirect('/login')
     return None
+
+def _open_door(side, label=""):
+    FAKE_STATE[f"door_{side}"] = "open"
+    if label:
+        FAKE_STATE["last_event"] = label
+    def auto_close():
+        import time; time.sleep(3)
+        FAKE_STATE[f"door_{side}"] = "closed"
+    threading.Thread(target=auto_close, daemon=True).start()
 
 # ── 頁面路由 ──────────────────────────────────────────────
 @app.route('/')
@@ -104,7 +130,7 @@ def merchant_page():
     r = _require('merchant')
     return r if r else _html('merchant.html')
 
-# ── API 路由（假資料）────────────────────────────────────
+# ── 認證 API ─────────────────────────────────────────────
 @app.route('/api/login', methods=['POST'])
 def api_login():
     data = request.get_json(silent=True) or {}
@@ -129,6 +155,7 @@ def api_me():
         return jsonify({"error": "not logged in"}), 401
     return jsonify({"name": acc['name'], "role": acc['role']})
 
+# ── 管理員 API ───────────────────────────────────────────
 @app.route('/api/status')
 def api_status():
     r = _require('admin')
@@ -139,13 +166,7 @@ def api_status():
 def api_door(side):
     if side not in ('left', 'right'):
         return jsonify({"error": "invalid"}), 400
-    FAKE_STATE[f"door_{side}"] = "open"
-    FAKE_STATE["last_event"] = f"[Dev] 管理員開 {side} 門"
-    # 模擬 3 秒後自動關門
-    def auto_close():
-        import time; time.sleep(3)
-        FAKE_STATE[f"door_{side}"] = "closed"
-    threading.Thread(target=auto_close, daemon=True).start()
+    _open_door(side, f"[Dev] 管理員開 {side} 門")
     return jsonify({"ok": True})
 
 @app.route('/api/led/<side>/<color>/<action>', methods=['POST'])
@@ -159,144 +180,29 @@ def api_led(side, color, action):
 
 @app.route('/api/button/<int:btn_num>', methods=['POST'])
 def api_button(btn_num):
-    if btn_num not in BUTTON_ROOMS:
+    if btn_num not in BUTTON_ROOM:
         return jsonify({"error": "invalid"}), 400
-    room = BUTTON_ROOMS[btn_num]
+    room = BUTTON_ROOM[btn_num]
     side = ROOM_SIDE[room]
-    FAKE_STATE["last_event"] = f"[Dev] 按鈕{btn_num} ({room}) 觸發"
-    FAKE_STATE[f"door_{side}"] = "open"
-    def auto_close():
-        import time; time.sleep(3)
-        FAKE_STATE[f"door_{side}"] = "closed"
-    threading.Thread(target=auto_close, daemon=True).start()
-    return jsonify({"ok": True, "room": room, "side": side})
+    order = get_valid_button_order(btn_num)
+    if order:
+        result = delivery_complete(order['id'])
+        if result.get('ok'):
+            _open_door(side, f"[Dev] 按鈕{btn_num} ({room}) — 訂單#{order['id']} 送達")
+            _broadcast_order(order['student_id'], {
+                "type": "delivered", "order_id": order['id'],
+                "merchant": order['merchant'], "compartment": btn_num
+            })
+            return jsonify({"ok": True, "room": room, "side": side,
+                            "order_id": order['id'], "message": f"訂單#{order['id']} 已送達"})
+        return jsonify({"error": result.get('error', '操作失敗')}), 400
+    return jsonify({"error": f"按鈕 {btn_num} 目前無有效配送任務"}), 403
 
 @app.route('/api/students')
 def api_students():
     r = _require('admin')
     if r: return jsonify({"error": "unauthorized"}), 401
     return jsonify(get_all_students())
-
-@app.route('/api/my-orders')
-def api_my_orders():
-    acc = session.get('account')
-    if not acc or acc['role'] != 'student':
-        return jsonify({"error": "unauthorized"}), 401
-    sid = acc['id']
-    room = acc['room']
-    return jsonify({
-        "orders":  get_my_orders(sid),
-        "points":  get_room_points(room),
-        "pending": get_pending_order(sid),
-        "name":    acc['name'],
-        "room":    room,
-    })
-
-@app.route('/api/points-stream')
-def api_points_stream():
-    acc = session.get('account')
-    if not acc or acc['role'] != 'student':
-        return jsonify({"error": "unauthorized"}), 401
-    room = acc['room']
-    q = queue.Queue(maxsize=20)
-    with _subs_lock:
-        _room_subs.setdefault(room, []).append(q)
-
-    def generate():
-        try:
-            yield f"data: {get_room_points(room)}\n\n"
-            while True:
-                try:
-                    pts = q.get(timeout=25)
-                    yield f"data: {pts}\n\n"
-                except queue.Empty:
-                    yield ": keepalive\n\n"
-        finally:
-            with _subs_lock:
-                subs = _room_subs.get(room, [])
-                if q in subs:
-                    subs.remove(q)
-
-    return Response(generate(), mimetype='text/event-stream',
-                    headers={'Cache-Control': 'no-cache', 'X-Accel-Buffering': 'no'})
-
-@app.route('/api/checkin', methods=['POST'])
-def api_checkin():
-    """學生在合作商家內用後打卡加積分"""
-    acc = session.get('account')
-    if not acc or acc['role'] != 'student':
-        return jsonify({"error": "unauthorized"}), 401
-    import random
-    room = acc['room']
-    pts = random.randint(2, 6)
-    total = add_room_points(room, pts)
-    _broadcast_points(room, total)
-    return jsonify({"ok": True, "added": pts, "total": total})
-
-@app.route('/api/redeem', methods=['POST'])
-def api_redeem():
-    """兌換積分商店品項"""
-    acc = session.get('account')
-    if not acc or acc['role'] != 'student':
-        return jsonify({"error": "unauthorized"}), 401
-    data = request.get_json(silent=True) or {}
-    cost = int(data.get('cost', 0))
-    room = acc['room']
-    ok, total = redeem_room_points(room, cost)
-    if ok:
-        _broadcast_points(room, total)
-    return jsonify({"ok": ok, "total": total,
-                    "error": "積分不足" if not ok else None})
-
-@app.route('/api/open_by_student', methods=['POST'])
-def api_open_by_student():
-    acc = session.get('account')
-    if not acc or acc['role'] != 'student':
-        return jsonify({"error": "unauthorized"}), 401
-    sid = acc['id']
-    pending = get_pending_order(sid)
-    if not pending:
-        return jsonify({"error": "目前沒有待取餐點"}), 404
-    room = acc['room']
-    side = ROOM_SIDE.get(room)
-    FAKE_STATE["last_event"] = f"[Dev] 學生 {acc['name']} ({room}) 開箱"
-    FAKE_STATE[f"door_{side}"] = "open"
-    pickup_order(pending['id'], sid)
-    def auto_close():
-        import time; time.sleep(3)
-        FAKE_STATE[f"door_{side}"] = "closed"
-    threading.Thread(target=auto_close, daemon=True).start()
-    return jsonify({"ok": True, "room": room, "side": side})
-
-@app.route('/api/delivery/rooms')
-def api_delivery_rooms():
-    r = _require('delivery')
-    if r: return jsonify({"error": "unauthorized"}), 401
-    return jsonify(get_all_rooms_students())
-
-@app.route('/api/delivery/open', methods=['POST'])
-def api_delivery_open():
-    r = _require('delivery')
-    if r: return jsonify({"error": "unauthorized"}), 401
-    data = request.get_json(silent=True) or {}
-    sid = data.get('student_id', '').strip()
-    merchant = data.get('merchant', '外送').strip()
-    room = get_room_by_student(sid)
-    if not room:
-        return jsonify({"error": "找不到學生"}), 404
-    side = ROOM_SIDE.get(room)
-    oid = add_order(sid, room, merchant)
-    FAKE_STATE["last_event"] = f"[Dev] 外送員送達 {room} ({sid})"
-    FAKE_STATE[f"door_{side}"] = "open"
-    def auto_close():
-        import time; time.sleep(3)
-        FAKE_STATE[f"door_{side}"] = "closed"
-    threading.Thread(target=auto_close, daemon=True).start()
-    return jsonify({"ok": True, "order_id": oid, "room": room, "side": side})
-
-@app.route('/api/videos/clear', methods=['POST'])
-def clear_videos():
-    return jsonify({"ok": True})  # 開發模式：no-op
 
 @app.route('/api/rankings')
 def api_rankings():
@@ -335,8 +241,202 @@ def api_room_merchant_stats():
     if r: return jsonify({"error": "unauthorized"}), 401
     return jsonify(get_room_merchant_stats())
 
-# ── 商家 API ──────────────────────────────────────────────
+# ── 學生 API ─────────────────────────────────────────────
+@app.route('/api/my-orders')
+def api_my_orders():
+    acc = session.get('account')
+    if not acc or acc['role'] != 'student':
+        return jsonify({"error": "unauthorized"}), 401
+    sid = acc['id']
+    room = acc['room']
+    return jsonify({
+        "orders":  get_my_orders(sid),
+        "points":  get_room_points(room),
+        "pending": get_pending_order(sid),
+        "active":  get_active_order(sid),
+        "name":    acc['name'],
+        "room":    room,
+    })
 
+@app.route('/api/points-stream')
+def api_points_stream():
+    acc = session.get('account')
+    if not acc or acc['role'] != 'student':
+        return jsonify({"error": "unauthorized"}), 401
+    room = acc['room']
+    q = queue.Queue(maxsize=20)
+    with _subs_lock:
+        _room_subs.setdefault(room, []).append(q)
+
+    def generate():
+        try:
+            yield f"data: {get_room_points(room)}\n\n"
+            while True:
+                try:
+                    pts = q.get(timeout=25)
+                    yield f"data: {pts}\n\n"
+                except queue.Empty:
+                    yield ": keepalive\n\n"
+        finally:
+            with _subs_lock:
+                subs = _room_subs.get(room, [])
+                if q in subs:
+                    subs.remove(q)
+
+    return Response(generate(), mimetype='text/event-stream',
+                    headers={'Cache-Control': 'no-cache', 'X-Accel-Buffering': 'no'})
+
+@app.route('/api/order-stream')
+def api_order_stream():
+    acc = session.get('account')
+    if not acc or acc['role'] != 'student':
+        return jsonify({"error": "unauthorized"}), 401
+    sid = acc['id']
+    q = queue.Queue(maxsize=20)
+    with _subs_lock:
+        _order_subs.setdefault(sid, []).append(q)
+
+    def generate():
+        try:
+            active = get_active_order(sid)
+            if active:
+                yield f"data: {json.dumps(active, ensure_ascii=False)}\n\n"
+            while True:
+                try:
+                    data = q.get(timeout=25)
+                    yield f"data: {data}\n\n"
+                except queue.Empty:
+                    yield ": keepalive\n\n"
+        finally:
+            with _subs_lock:
+                subs = _order_subs.get(sid, [])
+                if q in subs:
+                    subs.remove(q)
+
+    return Response(generate(), mimetype='text/event-stream',
+                    headers={'Cache-Control': 'no-cache', 'X-Accel-Buffering': 'no'})
+
+@app.route('/api/checkin', methods=['POST'])
+def api_checkin():
+    acc = session.get('account')
+    if not acc or acc['role'] != 'student':
+        return jsonify({"error": "unauthorized"}), 401
+    import random
+    room = acc['room']
+    pts = random.randint(2, 6)
+    total = add_room_points(room, pts)
+    _broadcast_points(room, total)
+    return jsonify({"ok": True, "added": pts, "total": total})
+
+@app.route('/api/redeem', methods=['POST'])
+def api_redeem():
+    acc = session.get('account')
+    if not acc or acc['role'] != 'student':
+        return jsonify({"error": "unauthorized"}), 401
+    data = request.get_json(silent=True) or {}
+    cost = int(data.get('cost', 0))
+    room = acc['room']
+    ok, total = redeem_room_points(room, cost)
+    if ok:
+        _broadcast_points(room, total)
+    return jsonify({"ok": ok, "total": total,
+                    "error": "積分不足" if not ok else None})
+
+@app.route('/api/open_by_student', methods=['POST'])
+def api_open_by_student():
+    acc = session.get('account')
+    if not acc or acc['role'] != 'student':
+        return jsonify({"error": "unauthorized"}), 401
+    sid = acc['id']
+    pending = get_pending_order(sid)
+    if not pending:
+        return jsonify({"error": "目前沒有待取餐點"}), 404
+    room = acc['room']
+    side = ROOM_SIDE.get(room)
+    _open_door(side, f"[Dev] 學生 {acc['name']} ({room}) 開箱")
+    pickup_order(pending['id'], sid)
+    return jsonify({"ok": True, "room": room, "side": side})
+
+@app.route('/api/orders', methods=['POST'])
+def api_create_order():
+    acc = session.get('account')
+    if not acc or acc['role'] != 'student':
+        return jsonify({"error": "unauthorized"}), 401
+    active = get_active_order(acc['id'])
+    if active:
+        return jsonify({"error": "您已有進行中的訂單，請等待完成後再點餐"}), 400
+    data = request.get_json(silent=True) or {}
+    merchant = data.get('merchant', '').strip()
+    items = data.get('items', [])
+    if not merchant:
+        return jsonify({"error": "請選擇商家"}), 400
+    if not items:
+        return jsonify({"error": "請至少選擇一個品項"}), 400
+    room = acc['room']
+    oid = create_student_order(acc['id'], room, merchant, items)
+    return jsonify({"ok": True, "order_id": oid})
+
+# ── 外送員 API ───────────────────────────────────────────
+@app.route('/api/delivery/rooms')
+def api_delivery_rooms():
+    r = _require('delivery')
+    if r: return jsonify({"error": "unauthorized"}), 401
+    return jsonify(get_all_rooms_students())
+
+@app.route('/api/delivery/orders')
+def api_delivery_orders():
+    r = _require('delivery')
+    if r: return jsonify({"error": "unauthorized"}), 401
+    return jsonify(get_delivery_orders())
+
+@app.route('/api/delivery/pickup/<int:order_id>', methods=['POST'])
+def api_delivery_pickup(order_id):
+    r = _require('delivery')
+    if r: return jsonify({"error": "unauthorized"}), 401
+    result = delivery_pickup(order_id)
+    if result.get('error'):
+        return jsonify(result), 400
+    _broadcast_order(result.get('student_id', ''), {
+        "type": "delivering", "order_id": order_id,
+        "compartment": result['compartment']
+    })
+    return jsonify(result)
+
+@app.route('/api/delivery/complete/<int:order_id>', methods=['POST'])
+def api_delivery_complete(order_id):
+    r = _require('delivery')
+    if r: return jsonify({"error": "unauthorized"}), 401
+    result = delivery_complete(order_id)
+    if result.get('error'):
+        return jsonify(result), 400
+    room = result.get('room')
+    side = ROOM_SIDE.get(room)
+    if side:
+        _open_door(side, f"[Dev] 外送員送達 {room}")
+    student_id = result.get('student_id', '')
+    if student_id:
+        _broadcast_order(student_id, {
+            "type": "delivered", "order_id": order_id,
+            "merchant": "", "compartment": result.get('compartment')
+        })
+    return jsonify(result)
+
+@app.route('/api/delivery/open', methods=['POST'])
+def api_delivery_open():
+    r = _require('delivery')
+    if r: return jsonify({"error": "unauthorized"}), 401
+    data = request.get_json(silent=True) or {}
+    sid = data.get('student_id', '').strip()
+    merchant = data.get('merchant', '外送').strip()
+    room = get_room_by_student(sid)
+    if not room:
+        return jsonify({"error": "找不到學生"}), 404
+    side = ROOM_SIDE.get(room)
+    oid = add_order(sid, room, merchant)
+    _open_door(side, f"[Dev] 外送員送達 {room} ({sid})")
+    return jsonify({"ok": True, "order_id": oid, "room": room, "side": side})
+
+# ── 商家 API ─────────────────────────────────────────────
 @app.route('/api/merchant/register', methods=['POST'])
 def api_merchant_register():
     data = request.get_json(silent=True) or {}
@@ -368,13 +468,12 @@ def api_merchant_upload_menu():
     f = request.files['image']
     if not f.filename:
         return jsonify({"error": "未選擇圖片"}), 400
-    # Validate file type
     allowed = {'image/jpeg', 'image/png', 'image/webp', 'image/gif'}
     mime = f.mimetype or 'image/jpeg'
     if mime not in allowed:
         return jsonify({"error": "僅支援 JPG / PNG / WebP 格式"}), 400
     image_bytes = f.read()
-    if len(image_bytes) > 10 * 1024 * 1024:  # 10 MB limit
+    if len(image_bytes) > 10 * 1024 * 1024:
         return jsonify({"error": "圖片大小不能超過 10MB"}), 400
     try:
         items = parse_menu_image(image_bytes, mime)
@@ -397,7 +496,6 @@ def api_merchant_menu_save():
         return jsonify({"error": "unauthorized"}), 401
     data = request.get_json(silent=True) or {}
     items = data.get('items', [])
-    # Re-assign sequential IDs
     for i, item in enumerate(items):
         item['id'] = i + 1
     ok = update_merchant_menu(acc['id'], items)
@@ -405,7 +503,6 @@ def api_merchant_menu_save():
 
 @app.route('/api/merchants/public')
 def api_merchants_public():
-    """學生端可查閱的商家列表（含菜單）"""
     profiles = get_all_merchant_profiles()
     return jsonify(profiles)
 
@@ -414,11 +511,13 @@ def serve_image(filename):
     img_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'image')
     return send_from_directory(img_dir, filename)
 
-# ── 相機 stream（開發模式回傳靜態圖）─────────────────────
+@app.route('/api/videos/clear', methods=['POST'])
+def clear_videos():
+    return jsonify({"ok": True})
+
 @app.route('/stream')
 def stream():
     def placeholder():
-        # 回傳一張純色 JPEG 當作 placeholder
         try:
             import cv2, numpy as np
             img = np.zeros((240, 320, 3), dtype='uint8')
@@ -428,7 +527,6 @@ def stream():
             _, jpeg = cv2.imencode('.jpg', img)
             frame = jpeg.tobytes()
         except ImportError:
-            # 如果連 cv2 都沒有，回傳最小 1x1 灰色 JPEG
             frame = (b'\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\x01\x00\x00\x01\x00\x01\x00\x00'
                      b'\xff\xdb\x00C\x00\x08\x06\x06\x07\x06\x05\x08\x07\x07\x07\t\t'
                      b'\x08\n\x0c\x14\r\x0c\x0b\x0b\x0c\x19\x12\x13\x0f\x14\x1d\x1a'

@@ -8,6 +8,8 @@ import os
 DB_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'heliaris.db')
 
 ROOMS = ['B301', 'B302', 'B405', 'B406']
+ROOM_BUTTON = {'B301': 1, 'B302': 2, 'B405': 3, 'B406': 4}
+BUTTON_ROOM = {1: 'B301', 2: 'B302', 3: 'B405', 4: 'B406'}
 
 _FIXED_STUDENTS = [
     ('115A5206', '林宜蓁', 'B301'),
@@ -29,6 +31,47 @@ _FIXED_STUDENTS = [
 ]
 
 _MERCHANTS = ['麥當勞', '肯德基', '摩斯漢堡', '爭鮮壽司', '鬍鬚張', '85度C', '星巴克', '丹堤咖啡', '50嵐', '清心福全']
+
+_SAMPLE_PROFILES = [
+    {
+        'store_name': '麥當勞', 'category': '速食', 'description': '全球知名連鎖速食',
+        'menu': [
+            {'id':1,'category':'漢堡','name':'大麥克','price':105,'desc':'','available':True},
+            {'id':2,'category':'漢堡','name':'麥辣雞腿堡','price':89,'desc':'','available':True},
+            {'id':3,'category':'漢堡','name':'麥香魚','price':69,'desc':'','available':True},
+            {'id':4,'category':'點心','name':'薯條（中）','price':55,'desc':'','available':True},
+            {'id':5,'category':'飲料','name':'可樂（中）','price':45,'desc':'去冰/少冰/正常冰','available':True},
+        ]
+    },
+    {
+        'store_name': '50嵐', 'category': '飲料', 'description': '知名手搖飲品牌',
+        'menu': [
+            {'id':1,'category':'茶類','name':'四季春茶（大）','price':35,'desc':'','available':True},
+            {'id':2,'category':'奶茶','name':'珍珠奶茶（大）','price':55,'desc':'','available':True},
+            {'id':3,'category':'奶茶','name':'波霸奶茶（大）','price':60,'desc':'','available':True},
+            {'id':4,'category':'茶類','name':'烏龍茶（大）','price':35,'desc':'','available':True},
+        ]
+    },
+    {
+        'store_name': '鬍鬚張', 'category': '台式', 'description': '台灣知名滷肉飯品牌',
+        'menu': [
+            {'id':1,'category':'飯類','name':'滷肉飯（大）','price':65,'desc':'','available':True},
+            {'id':2,'category':'飯類','name':'排骨飯','price':120,'desc':'','available':True},
+            {'id':3,'category':'飯類','name':'爌肉飯','price':99,'desc':'','available':True},
+            {'id':4,'category':'湯品','name':'貢丸湯','price':35,'desc':'','available':True},
+            {'id':5,'category':'小菜','name':'豬血糕','price':25,'desc':'','available':True},
+        ]
+    },
+    {
+        'store_name': '星巴克', 'category': '咖啡', 'description': '全球連鎖咖啡品牌',
+        'menu': [
+            {'id':1,'category':'咖啡','name':'拿鐵（大杯）','price':155,'desc':'','available':True},
+            {'id':2,'category':'咖啡','name':'美式（大杯）','price':135,'desc':'','available':True},
+            {'id':3,'category':'咖啡','name':'焦糖瑪奇朵（大）','price':165,'desc':'','available':True},
+            {'id':4,'category':'咖啡','name':'卡布奇諾（大）','price':145,'desc':'','available':True},
+        ]
+    },
+]
 
 def init_db():
     conn = sqlite3.connect(DB_PATH)
@@ -55,7 +98,11 @@ def init_db():
         month TEXT NOT NULL,
         delivered_at TEXT,
         picked_up_at TEXT,
-        status TEXT DEFAULT 'pending'
+        status TEXT DEFAULT 'pending',
+        items_json TEXT DEFAULT '[]',
+        created_at TEXT,
+        compartment INTEGER,
+        compartment_valid_until TEXT
     )''')
 
     c.execute('''CREATE TABLE IF NOT EXISTS merchants (
@@ -79,6 +126,18 @@ def init_db():
         created_at TEXT NOT NULL
     )''')
 
+    # migration for existing DBs
+    for col_sql in [
+        "ALTER TABLE orders ADD COLUMN items_json TEXT DEFAULT '[]'",
+        "ALTER TABLE orders ADD COLUMN created_at TEXT",
+        "ALTER TABLE orders ADD COLUMN compartment INTEGER",
+        "ALTER TABLE orders ADD COLUMN compartment_valid_until TEXT",
+    ]:
+        try:
+            c.execute(col_sql)
+        except sqlite3.OperationalError:
+            pass
+
     c.execute('SELECT COUNT(*) FROM accounts')
     if c.fetchone()[0] == 0:
         c.executemany('INSERT INTO students VALUES (?,?,?)', _FIXED_STUDENTS)
@@ -88,6 +147,7 @@ def init_db():
         c.execute('INSERT INTO accounts VALUES (?,?,?,?)', ('delivery', '外送員', 'delivery', None))
 
         today = datetime.date.today()
+        now_str = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         order_rows = []
         room_pts = {r: 100 for r in ROOMS}
         for s in _FIXED_STUDENTS:
@@ -97,11 +157,12 @@ def init_db():
                 for _ in range(count):
                     day = random.randint(1, 28)
                     ts = f"{m}-{day:02d} {random.randint(10,22):02d}:{random.randint(0,59):02d}:00"
-                    order_rows.append((s[0], s[2], random.choice(_MERCHANTS), m, ts, ts, 'picked_up'))
+                    order_rows.append((s[0], s[2], random.choice(_MERCHANTS), m, ts, ts, 'picked_up', '[]', ts))
                 room_pts[s[2]] = max(0, room_pts[s[2]] - count * 8)
 
-        c.executemany('INSERT INTO orders (student_id,room,merchant,month,delivered_at,picked_up_at,status) VALUES (?,?,?,?,?,?,?)',
-                      order_rows)
+        c.executemany(
+            'INSERT INTO orders (student_id,room,merchant,month,delivered_at,picked_up_at,status,items_json,created_at) VALUES (?,?,?,?,?,?,?,?,?)',
+            order_rows)
         c.executemany('INSERT INTO room_points VALUES (?,?)', list(room_pts.items()))
 
         c.executemany("INSERT OR IGNORE INTO merchants (name, category) VALUES (?,?)", [
@@ -110,8 +171,16 @@ def init_db():
             ('星巴克','咖啡'), ('丹堤咖啡','咖啡'), ('50嵐','飲料'), ('清心福全','飲料'),
         ])
 
+        for sp in _SAMPLE_PROFILES:
+            account_id = 'mcht_' + ''.join(random.choices(string.ascii_lowercase + string.digits, k=8))
+            c.execute('INSERT INTO accounts VALUES (?,?,?,?)', (account_id, sp['store_name'], 'merchant', None))
+            c.execute(
+                'INSERT INTO merchant_profiles (account_id, store_name, category, description, menu_json, created_at) VALUES (?,?,?,?,?,?)',
+                (account_id, sp['store_name'], sp['category'], sp['description'],
+                 json.dumps(sp['menu'], ensure_ascii=False), now_str))
+
         conn.commit()
-        print(f"[DB] 初始化完成，共 {len(_FIXED_STUDENTS)} 位學生，{len(order_rows)} 筆歷史訂單")
+        print(f"[DB] 初始化完成，共 {len(_FIXED_STUDENTS)} 位學生，{len(order_rows)} 筆歷史訂單，{len(_SAMPLE_PROFILES)} 個示範商家")
     conn.close()
 
 def get_account(aid: str) -> dict | None:
@@ -138,31 +207,147 @@ def get_all_students() -> list:
     conn.close()
     return rows
 
+# ── 訂單查詢 ──────────────────────────────────────────────
+
 def get_my_orders(student_id: str) -> list:
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
-    c.execute('SELECT id,merchant,month,status,delivered_at FROM orders WHERE student_id=? ORDER BY id DESC LIMIT 20',
+    c.execute('''SELECT id, merchant, month, status, delivered_at, created_at, compartment, items_json
+                 FROM orders WHERE student_id=? ORDER BY id DESC LIMIT 20''',
               (student_id,))
-    rows = [{"id": r[0], "merchant": r[1], "month": r[2], "status": r[3], "delivered_at": r[4]} for r in c.fetchall()]
+    rows = [{
+        "id": r[0], "merchant": r[1], "month": r[2], "status": r[3],
+        "delivered_at": r[4], "created_at": r[5], "compartment": r[6],
+        "items": json.loads(r[7] or '[]')
+    } for r in c.fetchall()]
     conn.close()
     return rows
+
+def get_active_order(student_id: str) -> dict | None:
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("""SELECT id, merchant, status, compartment, items_json, created_at
+                 FROM orders WHERE student_id=? AND status IN ('pending','delivering','delivered')
+                 ORDER BY id DESC LIMIT 1""", (student_id,))
+    row = c.fetchone()
+    conn.close()
+    if not row:
+        return None
+    return {
+        "id": row[0], "merchant": row[1], "status": row[2],
+        "compartment": row[3], "items": json.loads(row[4] or '[]'),
+        "created_at": row[5]
+    }
 
 def get_pending_order(student_id: str) -> dict | None:
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
-    c.execute("SELECT id,merchant FROM orders WHERE student_id=? AND status='delivered' ORDER BY id DESC LIMIT 1",
+    c.execute("SELECT id,merchant,compartment FROM orders WHERE student_id=? AND status='delivered' ORDER BY id DESC LIMIT 1",
               (student_id,))
     row = c.fetchone()
     conn.close()
-    return {"id": row[0], "merchant": row[1]} if row else None
+    return {"id": row[0], "merchant": row[1], "compartment": row[2]} if row else None
+
+# ── 學生點餐 ──────────────────────────────────────────────
+
+def create_student_order(student_id: str, room: str, merchant: str, items: list) -> int:
+    now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    month = now[:7]
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("""INSERT INTO orders (student_id, room, merchant, month, created_at, items_json, status)
+                 VALUES (?, ?, ?, ?, ?, ?, 'pending')""",
+              (student_id, room, merchant, month, now, json.dumps(items, ensure_ascii=False)))
+    oid = c.lastrowid
+    conn.commit()
+    conn.close()
+    return oid
+
+# ── 外送員操作 ────────────────────────────────────────────
+
+def get_delivery_orders() -> list:
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("""SELECT o.id, o.student_id, o.room, o.merchant, o.status, o.items_json,
+                        o.created_at, o.compartment, o.compartment_valid_until,
+                        s.name
+                 FROM orders o
+                 JOIN students s ON o.student_id = s.student_id
+                 WHERE o.status IN ('pending', 'delivering')
+                 ORDER BY o.id ASC""")
+    rows = c.fetchall()
+    conn.close()
+    return [{
+        "id": r[0], "student_id": r[1], "room": r[2], "merchant": r[3],
+        "status": r[4], "items": json.loads(r[5] or '[]'),
+        "created_at": r[6], "compartment": r[7],
+        "compartment_valid_until": r[8], "student_name": r[9]
+    } for r in rows]
+
+def delivery_pickup(order_id: int, valid_minutes: int = 10) -> dict:
+    now = datetime.datetime.now()
+    valid_until = (now + datetime.timedelta(minutes=valid_minutes)).strftime('%Y-%m-%d %H:%M:%S')
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("SELECT room, status, student_id FROM orders WHERE id=?", (order_id,))
+    row = c.fetchone()
+    if not row:
+        conn.close()
+        return {"error": "訂單不存在"}
+    room, status, student_id = row
+    if status != 'pending':
+        conn.close()
+        return {"error": "訂單狀態不正確"}
+    compartment = ROOM_BUTTON.get(room)
+    c.execute("""UPDATE orders SET status='delivering', compartment=?, compartment_valid_until=?
+                 WHERE id=?""", (compartment, valid_until, order_id))
+    conn.commit()
+    conn.close()
+    return {"ok": True, "compartment": compartment, "room": room, "valid_until": valid_until, "student_id": student_id}
+
+def delivery_complete(order_id: int) -> dict:
+    now_str = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("SELECT room, status, compartment_valid_until, student_id, compartment FROM orders WHERE id=?", (order_id,))
+    row = c.fetchone()
+    if not row:
+        conn.close()
+        return {"error": "訂單不存在"}
+    room, status, valid_until, student_id, compartment = row
+    if status != 'delivering':
+        conn.close()
+        return {"error": "訂單狀態不正確"}
+    if valid_until and datetime.datetime.strptime(valid_until, '%Y-%m-%d %H:%M:%S') < datetime.datetime.now():
+        conn.close()
+        return {"error": "按鈕時效已過期，請重新取餐"}
+    c.execute("UPDATE orders SET status='delivered', delivered_at=? WHERE id=?", (now_str, order_id))
+    conn.commit()
+    conn.close()
+    return {"ok": True, "room": room, "student_id": student_id, "compartment": compartment}
+
+def get_valid_button_order(button_num: int) -> dict | None:
+    now_str = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("""SELECT id, student_id, room, merchant FROM orders
+                 WHERE compartment=? AND status='delivering' AND compartment_valid_until>?
+                 ORDER BY id DESC LIMIT 1""", (button_num, now_str))
+    row = c.fetchone()
+    conn.close()
+    if not row:
+        return None
+    return {"id": row[0], "student_id": row[1], "room": row[2], "merchant": row[3]}
+
+# ── 舊版外送員開門（保留相容）────────────────────────────
 
 def add_order(student_id: str, room: str, merchant: str) -> int:
     now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     month = now[:7]
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
-    c.execute("INSERT INTO orders (student_id,room,merchant,month,delivered_at,status) VALUES (?,?,?,?,?,'delivered')",
-              (student_id, room, merchant, month, now))
+    c.execute("INSERT INTO orders (student_id,room,merchant,month,delivered_at,created_at,status) VALUES (?,?,?,?,?,?,'delivered')",
+              (student_id, room, merchant, month, now, now))
     oid = c.lastrowid
     conn.commit()
     conn.close()
@@ -172,12 +357,12 @@ def pickup_order(order_id: int, student_id: str):
     now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
-    c.execute("SELECT room FROM orders WHERE id=? AND student_id=?", (order_id, student_id))
-    row = c.fetchone()
     c.execute("UPDATE orders SET status='picked_up', picked_up_at=? WHERE id=? AND student_id=?",
               (now, order_id, student_id))
     conn.commit()
     conn.close()
+
+# ── 積分 ──────────────────────────────────────────────────
 
 def get_room_points(room: str) -> int:
     conn = sqlite3.connect(DB_PATH)
@@ -188,7 +373,6 @@ def get_room_points(room: str) -> int:
     return row[0] if row else 0
 
 def add_room_points(room: str, pts: int) -> int:
-    """內用打卡或其他管道新增房間積分，回傳更新後總積分"""
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute('''INSERT INTO room_points (room, total) VALUES (?,?)
@@ -201,7 +385,6 @@ def add_room_points(room: str, pts: int) -> int:
     return total
 
 def redeem_room_points(room: str, pts: int) -> tuple[bool, int]:
-    """兌換積分，回傳 (成功?, 剩餘積分)"""
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute('SELECT total FROM room_points WHERE room=?', (room,))
@@ -224,6 +407,8 @@ def get_all_room_points() -> list:
     rows = [{"room": r[0], "points": r[1]} for r in c.fetchall()]
     conn.close()
     return rows
+
+# ── 統計 ──────────────────────────────────────────────────
 
 def get_room_monthly_stats() -> list:
     conn = sqlite3.connect(DB_PATH)
@@ -262,7 +447,6 @@ def add_merchant(name: str, category: str = ''):
     conn.close()
 
 def get_room_merchant_stats(month: str = None) -> list:
-    """各房間 × 各商家 × 各月份的訂單數，供碳排精確計算使用"""
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     if month:
@@ -287,7 +471,6 @@ def get_all_rooms_students() -> list:
 # ── 商家帳號 ──────────────────────────────────────────────
 
 def register_merchant(store_name: str, category: str, description: str) -> str:
-    """建立商家帳號，回傳 account_id（格式 mcht_xxxxxxxx）"""
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     while True:

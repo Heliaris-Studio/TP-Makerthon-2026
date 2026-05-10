@@ -28,11 +28,12 @@ def parse_menu_image(image_bytes: bytes, mime_type: str = 'image/jpeg') -> list:
         "Return ONLY a JSON array, no markdown, no explanation:\n"
         '[{"category":"...","name":"...","price":0,"desc":"..."}]\n'
         "Rules: category in Traditional Chinese; price as integer (0 if unknown); "
-        "desc as short string or empty string."
+        "desc as short string or empty string.\n"
+        "If the image is not a menu or contains no food items, return an empty array: []"
     )
 
     response = client.models.generate_content(
-        model="gemma-4-26b-a4b-it",
+        model="gemini-2.5-flash",
         contents=[
             types.Part.from_bytes(data=image_bytes, mime_type=mime_type),
             prompt,
@@ -40,9 +41,11 @@ def parse_menu_image(image_bytes: bytes, mime_type: str = 'image/jpeg') -> list:
     )
 
     text = response.text.strip()
-    # Strip markdown code fences if model wraps output
-    text = re.sub(r'^```(?:json)?\s*', '', text)
-    text = re.sub(r'\s*```$', '', text)
+    # Extract JSON array from response (handles code fences and extra prose)
+    match = re.search(r'\[.*\]', text, re.DOTALL)
+    if not match:
+        return []
+    text = match.group(0)
 
     items = json.loads(text)
 

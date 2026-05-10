@@ -41,7 +41,7 @@ header p{font-size:.7rem;color:#a1a1aa;margin-top:2px}
 
 /* ── Success state ── */
 .success-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:28px 24px;display:none;text-align:center}
-.success-icon{font-size:2.8rem;margin-bottom:12px}
+.success-icon{margin-bottom:12px;display:flex;justify-content:center}
 .success-title{font-size:1.1rem;font-weight:800;color:var(--ink);margin-bottom:6px}
 .success-sub{font-size:.8rem;color:var(--muted);margin-bottom:24px;line-height:1.6}
 .id-box{background:#f4f4f5;border-radius:10px;padding:16px;margin-bottom:20px}
@@ -70,7 +70,7 @@ header p{font-size:.7rem;color:#a1a1aa;margin-top:2px}
 </head>
 <body>
 <header>
-  <h1>Heliaris</h1>
+  <h1>Heliaris MVP v0.2 商家合作申請</h1>
   <p>商家合作申請</p>
 </header>
 
@@ -107,7 +107,7 @@ header p{font-size:.7rem;color:#a1a1aa;margin-top:2px}
 
   <!-- 成功畫面 -->
   <div class="success-card" id="success-card">
-    <div class="success-icon">🎉</div>
+    <div class="success-icon"><svg viewBox="0 0 24 24" width="48" height="48" stroke="#15803d" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
     <div class="success-title">申請成功！</div>
     <div class="success-sub">
       請儲存下方帳號 ID，之後用它登入商家後台<br>
@@ -149,13 +149,13 @@ async function submitRegister(){
       body: JSON.stringify({store_name:name, category:cat, description:desc})
     });
     const d = await res.json();
-    if(!res.ok){ showToast('❌ '+(d.error||'申請失敗')); btn.disabled=false; btn.textContent='申請合作'; return; }
+    if(!res.ok){ showToast(d.error||'申請失敗'); btn.disabled=false; btn.textContent='申請合作'; return; }
     _accountId = d.account_id;
     document.getElementById('result-id').textContent = _accountId;
     document.getElementById('form-card').style.display = 'none';
     document.getElementById('success-card').style.display = 'block';
   } catch(e){
-    showToast('❌ 網路錯誤，請重試');
+    showToast('網路錯誤，請重試');
     btn.disabled=false; btn.textContent='申請合作';
   }
 }
@@ -163,7 +163,7 @@ async function submitRegister(){
 function copyId(){
   navigator.clipboard.writeText(_accountId).then(()=>{
     const b=document.getElementById('copy-btn');
-    b.textContent='✓ 已複製'; b.classList.add('copied');
+    b.textContent='已複製'; b.classList.add('copied');
     setTimeout(()=>{ b.textContent='複製帳號'; b.classList.remove('copied'); }, 2000);
   });
 }
